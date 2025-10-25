@@ -1,1 +1,36 @@
-import { ipcMain } from 'electron';\n\nipcMain.handle('tasks:list-by-project', async () => ({ ok: true, data: [] }));\nipcMain.handle('tasks:create', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('tasks:update', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('tasks:move', async () => ({ ok: false, error: 'Not implemented' }));\n
+import { ipcMain } from 'electron';
+import { wrapIpc } from '../utils/response';
+import { listTasksByProject, createTask, updateTask, moveTask } from '../../database/tasksRepo';
+import type { CreateTaskInput, UpdateTaskPayload } from '../../common/types';
+
+type ListArgs = { projectId: number };
+
+type MoveArgs = { id: number; projectId: number; status: string; position: number };
+
+ipcMain.handle(
+  'tasks:list-by-project',
+  wrapIpc(({ projectId }: ListArgs) => {
+    return listTasksByProject(projectId);
+  })
+);
+
+ipcMain.handle(
+  'tasks:create',
+  wrapIpc((payload: CreateTaskInput) => {
+    return createTask(payload);
+  })
+);
+
+ipcMain.handle(
+  'tasks:update',
+  wrapIpc((args: { id: number; payload: UpdateTaskPayload }) => {
+    return updateTask({ id: args.id, payload: args.payload });
+  })
+);
+
+ipcMain.handle(
+  'tasks:move',
+  wrapIpc((payload: MoveArgs) => {
+    return moveTask(payload);
+  })
+);

@@ -1,1 +1,7 @@
-import type { PreloadApi } from '../preload';\n\ndeclare global {\n  interface Window {\n    api: PreloadApi;\n  }\n}\n
+import type { PreloadApi } from '../preload';
+
+declare global {
+  interface Window {
+    api: PreloadApi;
+  }
+}

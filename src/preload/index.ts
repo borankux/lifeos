@@ -1,2 +1,43 @@
-import { contextBridge, ipcRenderer } from 'electron';\nimport type { Project, Task, ApiResponse } from '../common/types';\n\nconst api = {\n  projects: {\n    list: () => ipcRenderer.invoke('projects:list') as Promise<ApiResponse<Project[]>>,\n    create: (payload: { name: string; color?: string | null; icon?: string | null }) =>\n      ipcRenderer.invoke('projects:create', payload) as Promise<ApiResponse<Project>>,\n    update: (id: number, payload: { name?: string; color?: string | null; icon?: string | null; position?: number }) =>\n      ipcRenderer.invoke('projects:update', { id, payload }) as Promise<ApiResponse<Project>>,\n    setActive: (id: number) =>\n      ipcRenderer.invoke('projects:set-active', { id }) as Promise<ApiResponse<{ id: number }>>\n  },\n  tasks: {\n    listByProject: (projectId: number) =>\n      ipcRenderer.invoke('tasks:list-by-project', { projectId }) as Promise<ApiResponse<Task[]>>,\n    create: (payload: { projectId: number; title: string; description?: string; status?: string }) =>\n      ipcRenderer.invoke('tasks:create', payload) as Promise<ApiResponse<Task>>,\n    update: (id: number, payload: Partial<Omit<Task, 'id' | 'projectId'>>) =>\n      ipcRenderer.invoke('tasks:update', { id, payload }) as Promise<ApiResponse<Task>>,\n    move: (payload: { id: number; projectId: number; status: string; position: number }) =>\n      ipcRenderer.invoke('tasks:move', payload) as Promise<ApiResponse<Task>>\n  }\n};\n\ncontextBridge.exposeInMainWorld('api', api);\n\ndeclare global {\n  interface Window {\n    api: typeof api;\n  }\n}\n
-\nexport type PreloadApi = typeof api;\n
+import { contextBridge, ipcRenderer } from 'electron';
+import type {
+  ApiResponse,
+  Project,
+  ProjectsListResult,
+  Task,
+  CreateProjectInput,
+  UpdateProjectPayload,
+  CreateTaskInput,
+  UpdateTaskPayload
+} from '../common/types';
+
+const api = {
+  projects: {
+    list: () => ipcRenderer.invoke('projects:list') as Promise<ApiResponse<ProjectsListResult>>,
+    create: (payload: CreateProjectInput) =>
+      ipcRenderer.invoke('projects:create', payload) as Promise<ApiResponse<Project>>,
+    update: (id: number, payload: UpdateProjectPayload) =>
+      ipcRenderer.invoke('projects:update', { id, payload }) as Promise<ApiResponse<Project>>,
+    setActive: (id: number) =>
+      ipcRenderer.invoke('projects:set-active', { id }) as Promise<ApiResponse<{ id: number }>>
+  },
+  tasks: {
+    listByProject: (projectId: number) =>
+      ipcRenderer.invoke('tasks:list-by-project', { projectId }) as Promise<ApiResponse<Task[]>>,
+    create: (payload: CreateTaskInput) =>
+      ipcRenderer.invoke('tasks:create', payload) as Promise<ApiResponse<Task>>,
+    update: (id: number, payload: UpdateTaskPayload) =>
+      ipcRenderer.invoke('tasks:update', { id, payload }) as Promise<ApiResponse<Task>>,
+    move: (payload: { id: number; projectId: number; status: string; position: number }) =>
+      ipcRenderer.invoke('tasks:move', payload) as Promise<ApiResponse<Task>>
+  }
+};
+
+contextBridge.exposeInMainWorld('api', api);
+
+export type PreloadApi = typeof api;
+
+declare global {
+  interface Window {
+    api: PreloadApi;
+  }
+}

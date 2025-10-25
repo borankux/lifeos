@@ -1,1 +1,70 @@
-export interface Project {\n  id: number;\n  name: string;\n  color?: string | null;\n  icon?: string | null;\n  position: number;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface Task {\n  id: number;\n  projectId: number;\n  title: string;\n  description?: string | null;\n  status: string;\n  dueDate?: string | null;\n  priority?: string | null;\n  tags?: string[];\n  position: number;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface ApiResponse<T> {\n  ok: boolean;\n  data?: T;\n  error?: string;\n}\n
+export interface Project {
+  id: number;
+  name: string;
+  color?: string | null;
+  icon?: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Task {
+  id: number;
+  projectId: number;
+  title: string;
+  description?: string | null;
+  status: string;
+  dueDate?: string | null;
+  priority?: string | null;
+  tags?: string[];
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiResponse<T> {
+  ok: boolean;
+  data?: T;
+  error?: string;
+}
+
+export interface ProjectsListResult {
+  projects: Project[];
+  activeProjectId?: number;
+}
+
+export type CreateProjectInput = {
+  name: string;
+  color?: string | null;
+  icon?: string | null;
+};
+
+export type UpdateProjectPayload = Partial<{
+  name: string;
+  color: string | null;
+  icon: string | null;
+  position: number;
+  archivedAt: string | null;
+}>;
+
+export interface CreateTaskInput {
+  projectId: number;
+  title: string;
+  description?: string;
+  status?: string;
+  dueDate?: string;
+  priority?: string;
+  tags?: string[];
+  position?: number;
+}
+
+export type UpdateTaskPayload = Partial<{
+  title: string;
+  description: string | null;
+  status: string;
+  dueDate: string | null;
+  priority: string | null;
+  tags: string[] | null;
+  position: number;
+  projectId: number;
+}>;

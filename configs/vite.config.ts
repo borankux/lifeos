@@ -1,1 +1,23 @@
-import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport path from 'path';\n\nexport default defineConfig({\n  root: path.resolve(__dirname, '../src/renderer'),\n  plugins: [react()],\n  base: './',\n  build: {\n    outDir: path.resolve(__dirname, '../dist/renderer'),\n    emptyOutDir: true\n  },\n  server: {\n    port: 5173,\n    strictPort: true\n  },\n  resolve: {\n    alias: {\n      '@renderer': path.resolve(__dirname, '../src/renderer'),\n      '@common': path.resolve(__dirname, '../src/common')\n    }\n  }\n});\n
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  root: path.resolve(__dirname, '../src/renderer'),
+  plugins: [react()],
+  base: './',
+  build: {
+    outDir: path.resolve(__dirname, '../dist/renderer'),
+    emptyOutDir: true
+  },
+  server: {
+    port: 5173,
+    strictPort: true
+  },
+  resolve: {
+    alias: {
+      '@renderer': path.resolve(__dirname, '../src/renderer'),
+      '@common': path.resolve(__dirname, '../src/common')
+    }
+  }
+});

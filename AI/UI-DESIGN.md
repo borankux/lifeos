@@ -20,6 +20,7 @@
 - Reduce motion setting respects OS preferences.
 
 ## Views
+- Main Dashboard: GitHub-style activity calendar at the top showing year-round activity heat map; color intensity based on daily activity count; hover tooltips showing activity breakdown (tasks, diary entries, habits); click to view detailed day summary.
 - Kanban: project selector (dropdown or tabs) above board; per-project WIP counters; 3-5 columns; drag-and-drop with smooth ghost, auto-scroll.
 - Diary: split editor/preview pane; toolbar for markdown actions; drag-drop files; paste images.
 - Habits: checklist grid; streak heatmap; progress bars with goal markers.

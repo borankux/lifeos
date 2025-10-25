@@ -24,6 +24,7 @@
 - Create alarms; app triggers and shows notifications reliably.
 - Organize notes by categories; search and reorder.
 - Q&A tracks status; link to notes/tasks.
+- GitHub-style activity calendar showing all user activities (diary entries, tasks, habits, etc.) with intensity levels based on daily activity count.
 
 ## Acceptance Criteria (sample)
 - Project switch changes board data in under 150ms; active project persists between sessions.

@@ -3,11 +3,21 @@
   "compilerOptions": {
     "outDir": "dist",
     "module": "CommonJS",
+    "moduleResolution": "node",
     "jsx": "react-jsx",
     "types": ["node"],
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "allowJs": true,
+    "esModuleInterop": true
   },
-  "include": ["src/main", "src/preload", "src/common", "src/database"],
-  "exclude": ["src/renderer"]
+  "include": [
+    "src/main",
+    "src/preload",
+    "src/common",
+    "src/database",
+    "src/services"
+  ],
+  "exclude": [
+    "src/renderer"
+  ]
 }
-

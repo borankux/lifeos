@@ -1,1 +1,62 @@
-import { ipcMain } from 'electron';\n\nipcMain.handle('projects:list', async () => ({ ok: true, data: [] }));\nipcMain.handle('projects:create', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('projects:update', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('projects:set-active', async () => ({ ok: false, error: 'Not implemented' }));\n
+import { ipcMain } from 'electron';
+import { wrapIpc, success, failure } from '../utils/response';
+import { createProject, listProjects, reorderProjects, updateProject } from '../../database/projectsRepo';
+import { loadSettings, updateSettings } from '../../services/settings';
+import type { CreateProjectInput, UpdateProjectPayload, ProjectsListResult } from '../../common/types';
+
+ipcMain.handle(
+  'projects:list',
+  wrapIpc((): ProjectsListResult => {
+    const projects = listProjects();
+    const settings = loadSettings();
+    let activeProjectId = settings.activeProjectId;
+
+    if (projects.length === 0) {
+      return { projects, activeProjectId: undefined };
+    }
+
+    if (!activeProjectId || !projects.some((project) => project.id === activeProjectId)) {
+      activeProjectId = projects[0].id;
+      updateSettings({ activeProjectId });
+    }
+
+    return { projects, activeProjectId };
+  })
+);
+
+ipcMain.handle(
+  'projects:create',
+  wrapIpc((payload: CreateProjectInput) => {
+    const project = createProject(payload);
+    const projects = listProjects();
+    if (projects.length === 1) {
+      updateSettings({ activeProjectId: project.id });
+    }
+    return project;
+  })
+);
+
+ipcMain.handle(
+  'projects:update',
+  wrapIpc((args: { id: number; payload: UpdateProjectPayload }) => {
+    return updateProject({ id: args.id, payload: args.payload });
+  })
+);
+
+ipcMain.handle('projects:reorder', async (_event, order: Array<{ id: number; position: number }>) => {
+  try {
+    reorderProjects(order);
+    return success({ message: 'Reordered' });
+  } catch (error) {
+    console.error(error);
+    return failure(error instanceof Error ? error.message : String(error));
+  }
+});
+
+ipcMain.handle(
+  'projects:set-active',
+  wrapIpc((args: { id: number }) => {
+    updateSettings({ activeProjectId: args.id });
+    return { id: args.id };
+  })
+);
