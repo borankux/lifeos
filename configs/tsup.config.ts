@@ -1,0 +1,1 @@
+import { defineConfig } from 'tsup';\n\nexport default defineConfig({\n  entry: [],\n  splitting: false,\n  sourcemap: true,\n  clean: false,\n  dts: false,\n  minify: false,\n  format: ['cjs'],\n  target: 'node18',\n  external: ['electron', 'better-sqlite3']\n});\n
