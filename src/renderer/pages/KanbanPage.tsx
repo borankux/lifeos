@@ -5,6 +5,7 @@ import type { KanbanStatus } from '../constants';
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { TaskCard } from '../components/TaskCard';
+import useActivityStore from '../../store/activity';
 
 interface KanbanPageProps {
   activeProjectId?: number | null;
@@ -46,6 +47,8 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
       if (res.ok) {
         const listRes = await window.api.tasks.listByProject(activeProjectId);
         if (listRes.ok && listRes.data) setTasks(listRes.data);
+        // push activity entry
+        useActivityStore.getState().push({ type: 'task', message: `Created task "${title}"` });
       } else {
         console.error('Failed to create task:', res.error);
       }
@@ -53,6 +56,7 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
       console.error('Error creating task:', error);
     }
   }
+
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -92,6 +96,8 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
       await window.api.tasks.move({ id: activeTask.id, projectId: activeProjectId, status: destStatus, position: destPosition });
       const res = await window.api.tasks.listByProject(activeProjectId);
       if (res.ok && res.data) setTasks(res.data);
+      // push activity entry for move
+      useActivityStore.getState().push({ type: 'task', message: `Moved task "${activeTask.title}" to ${destStatus}` });
     } catch (e) {
       console.error('Move failed', e);
     }
