@@ -1,1 +1,14 @@
-import { defineConfig } from 'tsup';\n\nexport default defineConfig({\n  entry: [],\n  splitting: false,\n  sourcemap: true,\n  clean: false,\n  dts: false,\n  minify: false,\n  format: ['cjs'],\n  platform: 'node',\n  target: 'node18',\n  external: ['electron', 'better-sqlite3']\n});\n
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/main/index.ts', 'src/preload/index.ts'],
+  splitting: false,
+  sourcemap: true,
+  clean: false,
+  dts: false,
+  minify: false,
+  format: ['cjs'],
+  platform: 'node',
+  target: 'node18',
+  external: ['electron', 'better-sqlite3']
+});

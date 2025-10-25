@@ -2,13 +2,18 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "module": "CommonJS",
+    "module": "commonjs",
+    "target": "ES2020",
     "moduleResolution": "node",
     "jsx": "react-jsx",
     "types": ["node"],
     "baseUrl": "./src",
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "noEmit": false
   },
   "include": [
     "src/main",

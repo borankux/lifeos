@@ -9,28 +9,28 @@ type MoveArgs = { id: number; projectId: number; status: string; position: numbe
 
 ipcMain.handle(
   'tasks:list-by-project',
-  wrapIpc(({ projectId }: ListArgs) => {
+  wrapIpc((_event, { projectId }: ListArgs) => {
     return listTasksByProject(projectId);
   })
 );
 
 ipcMain.handle(
   'tasks:create',
-  wrapIpc((payload: CreateTaskInput) => {
-    return createTask(payload);
+  wrapIpc((_event, payload: CreateTaskInput) => {
+    return createTask({ ...payload, status: payload.status ?? 'To-Do' });
   })
 );
 
 ipcMain.handle(
   'tasks:update',
-  wrapIpc((args: { id: number; payload: UpdateTaskPayload }) => {
+  wrapIpc((_event, args: { id: number; payload: UpdateTaskPayload }) => {
     return updateTask({ id: args.id, payload: args.payload });
   })
 );
 
 ipcMain.handle(
   'tasks:move',
-  wrapIpc((payload: MoveArgs) => {
+  wrapIpc((_event, payload: MoveArgs) => {
     return moveTask(payload);
   })
 );

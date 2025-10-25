@@ -26,7 +26,7 @@ ipcMain.handle(
 
 ipcMain.handle(
   'projects:create',
-  wrapIpc((payload: CreateProjectInput) => {
+  wrapIpc((_event, payload: CreateProjectInput) => {
     const project = createProject(payload);
     const projects = listProjects();
     if (projects.length === 1) {
@@ -38,24 +38,28 @@ ipcMain.handle(
 
 ipcMain.handle(
   'projects:update',
-  wrapIpc((args: { id: number; payload: UpdateProjectPayload }) => {
+  wrapIpc((_event, args: { id: number; payload: UpdateProjectPayload }) => {
     return updateProject({ id: args.id, payload: args.payload });
   })
 );
 
-ipcMain.handle('projects:reorder', async (_event, order: Array<{ id: number; position: number }>) => {
-  try {
-    reorderProjects(order);
-    return success({ message: 'Reordered' });
-  } catch (error) {
-    console.error(error);
-    return failure(error instanceof Error ? error.message : String(error));
-  }
-});
+ipcMain.handle(
+  'projects:reorder',
+  wrapIpc((_event, order: Array<{ id: number; position: number }>) => {
+    try {
+      reorderProjects(order);
+      return success({ message: 'Reordered' });
+    } catch (error) {
+      console.error(error);
+      return failure(error instanceof Error ? error.message : String(error));
+    }
+  })
+);
+
 
 ipcMain.handle(
   'projects:set-active',
-  wrapIpc((args: { id: number }) => {
+  wrapIpc((_event, args: { id: number }) => {
     updateSettings({ activeProjectId: args.id });
     return { id: args.id };
   })

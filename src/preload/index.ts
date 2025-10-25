@@ -32,7 +32,15 @@ const api = {
   }
 };
 
+const windowControls = {
+  minimize: () => ipcRenderer.invoke('window:minimize'),
+  close: () => ipcRenderer.invoke('window:close'),
+  isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize')
+};
+
 contextBridge.exposeInMainWorld('api', api);
+contextBridge.exposeInMainWorld('windowControls', windowControls);
 
 export type PreloadApi = typeof api;
 

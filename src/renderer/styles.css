@@ -1,1 +1,42 @@
-body {\n  margin: 0;\n  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  background-color: #121212;\n  color: #f5f5f5;\n}\n\n* {\n  box-sizing: border-box;\n}\n
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #121212;
+  color: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom titlebar styles */
+.titlebar {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 40px;
+  padding: 0 8px;
+}
+.titlebar-left { display:flex; align-items:center; gap:0.75rem }
+.titlebar-controls { margin-left: auto; display:flex; gap:0.5rem; align-items:center }
+.titlebar-btn {
+  -webkit-app-region: no-drag;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.9);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.titlebar-close { color: #fff; background: linear-gradient(180deg,#ff3b30,#c72b1a) }
+
+/* Scrollbar styles */
+*::-webkit-scrollbar { width: 12px; height: 12px }
+*::-webkit-scrollbar-track { background: transparent }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; border: 3px solid transparent; background-clip: padding-box }
+*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12) }
+
+.no-drag { -webkit-app-region: no-drag }
+
