@@ -12,8 +12,8 @@
     "dev:main": "cross-env NODE_ENV=development ts-node --project tsconfig.main.json src/main/devRunner.ts",
     "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:main\"",
     "build:renderer": "vite build --config configs/vite.config.ts",
-    "build:main": "tsup src/main/index.ts --config configs/tsup.config.ts",
-    "build:preload": "tsup src/preload/index.ts --config configs/tsup.config.ts",
+    "build:main": "tsup src/main/index.ts --config configs/tsup.config.ts --out-dir dist/main",
+    "build:preload": "tsup src/preload/index.ts --config configs/tsup.config.ts --out-dir dist/preload",
     "build": "npm run build:renderer && npm run build:main && npm run build:preload",
     "start": "cross-env NODE_ENV=production electron .",
     "postinstall": "electron-builder install-app-deps"

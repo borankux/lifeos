@@ -1,0 +1,1 @@
+import { ipcMain } from 'electron';\n\nipcMain.handle('tasks:list-by-project', async () => ({ ok: true, data: [] }));\nipcMain.handle('tasks:create', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('tasks:update', async () => ({ ok: false, error: 'Not implemented' }));\nipcMain.handle('tasks:move', async () => ({ ok: false, error: 'Not implemented' }));\n
