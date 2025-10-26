@@ -122,4 +122,26 @@ export function reorderProjects(order: Array<{ id: number; position: number }>) 
   transaction(order);
 }
 
+export function deleteProject(id: number): void {
+  const db = getDb();
+  
+  // Use transaction to delete project and all related data
+  const transaction = db.transaction(() => {
+    // Delete all tasks in this project
+    db.prepare('DELETE FROM tasks WHERE project_id = ?').run(id);
+    
+    // Delete all activities related to this project
+    db.prepare('DELETE FROM activities WHERE entity_type = ? AND entity_id = ?').run('project', id);
+    
+    // Delete the project itself
+    const result = db.prepare('DELETE FROM projects WHERE id = ?').run(id);
+    
+    if (result.changes === 0) {
+      throw new Error('Project not found');
+    }
+  });
+  
+  transaction();
+}
+
 

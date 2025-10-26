@@ -7,12 +7,19 @@ interface NavBarProps {
   activeProjectId?: number | null;
   onSelect: (id: number) => void;
   onCreate: (name: string) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }
 
-export function NavBar({ projects, activeProjectId, onSelect, onCreate }: NavBarProps) {
+export function NavBar({ projects, activeProjectId, onSelect, onCreate, onDelete }: NavBarProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-      <ProjectSwitcher projects={projects} activeProjectId={activeProjectId ?? undefined} onSelect={onSelect} onCreate={onCreate} />
+      <ProjectSwitcher 
+        projects={projects} 
+        activeProjectId={activeProjectId ?? undefined} 
+        onSelect={onSelect} 
+        onCreate={onCreate}
+        onDelete={onDelete}
+      />
     </div>
   );
 }

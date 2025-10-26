@@ -1,90 +1,80 @@
-import { app, BrowserWindow, nativeTheme } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import './ipc/projects';
-import './ipc/tasks';
-import './ipc/window';
 import { initDatabase } from '../database/init';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
-import fs from 'fs';
+let mainWindow: BrowserWindow | null = null;
 
-function getPreloadPath() {
-  // Prefer a built JS preload if it exists (works for both dev and prod when using built main).
-  const builtPreloadJs = path.resolve(__dirname, '../preload/index.js');
-  const builtPreloadTs = path.resolve(__dirname, '../preload/index.ts');
-  const srcPreloadTs = path.resolve(__dirname, '../../src/preload/index.ts');
-
-  if (fs.existsSync(builtPreloadJs)) {
-    return builtPreloadJs;
-  }
-
-  // Fallback: if a TS preload exists next to the built main (rare), use it.
-  if (fs.existsSync(builtPreloadTs)) {
-    return builtPreloadTs;
-  }
-
-  // Finally, if running from source with ts-node or similar, load the src preload.
-  if (fs.existsSync(srcPreloadTs)) {
-    return srcPreloadTs;
-  }
-
-  // Default to the built JS preload path even if it doesn't exist; electron will report a clear error.
-  return builtPreloadJs;
+// Register IPC handlers after Electron is ready
+function registerIpcHandlers() {
+  // Import IPC handlers here to ensure Electron is ready
+  require('./ipc/projects');
+  require('./ipc/tasks');
+  require('./ipc/window');
+  require('./ipc/activities');
+  require('./ipc/settings');
+  require('./ipc/notification');
+  require('./ipc/metrics');
+  require('./ipc/qa');
+  require('./ipc/notebook');
 }
 
 async function createMainWindow() {
-  await initDatabase();
-
-  const mainWindow = new BrowserWindow({
-    width: 1280,
+  // Create the browser window with custom titlebar
+  mainWindow = new BrowserWindow({
+    width: 1200,
     height: 800,
-    minWidth: 1000,
-    minHeight: 640,
-    frame: false, // custom titlebar
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#121212' : '#ffffff',
+    minWidth: 800,
+    minHeight: 600,
+    frame: false, // Custom titlebar
+    backgroundColor: '#121212',
     webPreferences: {
-      preload: getPreloadPath(),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true
+      preload: path.join(__dirname, '../preload/index.js')
     }
   });
 
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
-
-  // Set Content Security Policy
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self' 'unsafe-inline' data: blob:; " +
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "img-src 'self' data: blob:; " +
-          "font-src 'self' data:; " +
-          "connect-src 'self' ws: wss:;"
-        ]
-      }
-    });
-  });
-
+  
   if (isDev && devServerUrl) {
+    // Development mode: Load Vite dev server
     await mainWindow.loadURL(devServerUrl);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    mainWindow.webContents.openDevTools();
   } else {
+    // Production mode: Load built HTML file
     const indexHtml = path.resolve(__dirname, '../renderer/index.html');
     await mainWindow.loadFile(indexHtml);
   }
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
+// App lifecycle management
 app.whenReady().then(async () => {
-  await createMainWindow();
+  try {
+    // Register IPC handlers first
+    registerIpcHandlers();
+    console.log('IPC handlers registered successfully');
+    
+    // Initialize database before creating window
+    console.log('Initializing database...');
+    await initDatabase();
+    console.log('Database initialized successfully');
+    
+    await createMainWindow();
+    console.log('Main window created successfully');
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+    app.quit();
+  }
 
-  app.on('activate', async () => {
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      await createMainWindow();
+      createMainWindow();
     }
   });
 });

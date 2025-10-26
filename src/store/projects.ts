@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Project } from '../common/types';
 import { useTasksStore } from './tasks';
+import { useActivityStore } from './activity';
 
 interface ProjectsState {
   projects: Project[];
@@ -64,6 +65,9 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
       set({ projects, activeProjectId: project.id });
       await window.api.projects.setActive(project.id);
       await useTasksStore.getState().loadTasks(project.id);
+      
+      // Log activity
+      useActivityStore.getState().pushActivity('project', `Created project: ${trimmed}`);
     } catch (error) {
       console.error(error);
       set({ error: error instanceof Error ? error.message : String(error) });

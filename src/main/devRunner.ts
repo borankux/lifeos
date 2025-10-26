@@ -16,13 +16,16 @@ async function start() {
   // Use require.resolve to get the actual path to electron executable
   const electronPath = require.resolve('electron');
   
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    NODE_ENV: 'development',
+    VITE_DEV_SERVER_URL: devServerUrl
+  };
+  delete env.ELECTRON_RUN_AS_NODE;
+
   const child = spawn(electronPath, ['-r', 'ts-node/register', mainEntry], {
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_ENV: 'development',
-      VITE_DEV_SERVER_URL: devServerUrl
-    }
+    env
   });
 
   child.on('close', code => {

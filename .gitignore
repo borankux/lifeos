@@ -1,6 +1,56 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
+build/
+release/
+*.tsbuildinfo
+
+# Database
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Logs
 *.log
-node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Package outputs
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.snap
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# User data (for development)
+user-data/
+lifeos/

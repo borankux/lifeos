@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { wrapIpc, success, failure } from '../utils/response';
-import { createProject, listProjects, reorderProjects, updateProject } from '../../database/projectsRepo';
+import { createProject, listProjects, reorderProjects, updateProject, deleteProject } from '../../database/projectsRepo';
 import { loadSettings, updateSettings } from '../../services/settings';
 import type { CreateProjectInput, UpdateProjectPayload, ProjectsListResult } from '../../common/types';
 
@@ -62,5 +62,22 @@ ipcMain.handle(
   wrapIpc((_event, args: { id: number }) => {
     updateSettings({ activeProjectId: args.id });
     return { id: args.id };
+  })
+);
+
+ipcMain.handle(
+  'projects:delete',
+  wrapIpc((_event, args: { id: number }) => {
+    deleteProject(args.id);
+    
+    // If deleted project was active, switch to first available project
+    const settings = loadSettings();
+    if (settings.activeProjectId === args.id) {
+      const projects = listProjects();
+      const newActiveId = projects.length > 0 ? projects[0].id : undefined;
+      updateSettings({ activeProjectId: newActiveId });
+    }
+    
+    return { success: true };
   })
 );

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Task, CreateTaskInput, UpdateTaskPayload } from '../common/types';
+import { useActivityStore } from './activity';
 
 interface TasksState {
   tasksByProject: Record<number, Task[]>;
@@ -66,6 +67,9 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         const tasks = state.tasksByProject[payload.projectId] ?? [];
         return withTasks(state, payload.projectId, sortTasks([...tasks, response.data]));
       });
+      
+      // Log activity
+      useActivityStore.getState().pushActivity('task', `Created task: ${payload.title}`);
     } catch (error) {
       console.error(error);
       set((state) => ({ ...state, error: error instanceof Error ? error.message : String(error) }));
@@ -84,6 +88,9 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         const next = tasks.map((task) => (task.id === updated.id ? updated : task));
         return withTasks(state, updated.projectId, sortTasks(next));
       });
+      
+      // Log activity
+      useActivityStore.getState().pushActivity('task', `Updated task: ${updated.title}`);
     } catch (error) {
       console.error(error);
       set((state) => ({ ...state, error: error instanceof Error ? error.message : String(error) }));
@@ -102,6 +109,9 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         const filtered = current.filter((task) => task.id !== moved.id);
         return withTasks(state, args.projectId, sortTasks([...filtered, moved]));
       });
+      
+      // Log activity
+      useActivityStore.getState().pushActivity('task', `Moved task to ${args.status}`);
     } catch (error) {
       console.error(error);
       set((state) => ({ ...state, error: error instanceof Error ? error.message : String(error) }));

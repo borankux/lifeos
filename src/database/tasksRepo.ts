@@ -3,6 +3,7 @@ import { getDb } from './init';
 import { mapTask } from './mappers';
 import type { Task } from '../common/types';
 import type { TaskRow } from './types';
+import { emitTaskEvent, recordTaskState } from './eventsRepo';
 
 const createTaskSchema = z.object({
   projectId: z.number().int().positive(),
@@ -10,7 +11,7 @@ const createTaskSchema = z.object({
   description: z.string().max(4000).optional(),
   status: z.string().min(1).max(50).default('To-Do'),
   dueDate: z.string().datetime().optional(),
-  priority: z.string().max(20).optional(),
+  priority: z.string().max(50).optional(),
   tags: z.array(z.string().max(30)).optional(),
   position: z.number().optional()
 });
@@ -22,7 +23,7 @@ const updateTaskSchema = z.object({
     description: z.string().max(4000).optional().nullable(),
     status: z.string().min(1).max(50).optional(),
     dueDate: z.string().datetime().optional().nullable(),
-    priority: z.string().max(20).optional().nullable(),
+    priority: z.string().max(50).optional().nullable(),
     tags: z.array(z.string().max(30)).optional().nullable(),
     position: z.number().optional(),
     projectId: z.number().int().positive().optional()
@@ -82,12 +83,24 @@ export function createTask(input: CreateTaskInput): Task {
     position
   }) as TaskRow;
 
-  return mapTask(row);
+  const task = mapTask(row);
+  
+  // Record state transition and emit event
+  recordTaskState(task.id, null, task.status);
+  if (task.status === 'In Progress') {
+    emitTaskEvent(task.id, task.status);
+  }
+
+  return task;
 }
 
 export function updateTask(input: UpdateTaskInput): Task {
   const { id, payload } = updateTaskSchema.parse(input);
   const db = getDb();
+
+  // Get old status
+  const oldTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as TaskRow | undefined;
+  const oldStatus = oldTask?.status;
 
   const fields: string[] = [];
   const parameters: Record<string, unknown> = { id };
@@ -126,11 +139,10 @@ export function updateTask(input: UpdateTaskInput): Task {
   }
 
   if (fields.length === 0) {
-    const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as TaskRow | undefined;
-    if (!row) {
+    if (!oldTask) {
       throw new Error('Task not found');
     }
-    return mapTask(row);
+    return mapTask(oldTask);
   }
 
   const row = db
@@ -141,7 +153,18 @@ export function updateTask(input: UpdateTaskInput): Task {
     throw new Error('Task not found');
   }
 
-  return mapTask(row);
+  const task = mapTask(row);
+  
+  // Track status changes and emit events
+  if (payload.status && payload.status !== oldStatus) {
+    recordTaskState(task.id, oldStatus || null, task.status);
+    emitTaskEvent(task.id, task.status, {
+      old_status: oldStatus,
+      due_date: task.dueDate
+    });
+  }
+
+  return task;
 }
 
 export function moveTask(input: MoveTaskInput): Task {

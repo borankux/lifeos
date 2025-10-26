@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notification</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: transparent;
+        overflow: hidden;
+        -webkit-app-region: no-drag;
+      }
+      
+      .notification {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(3, 218, 198, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-width: 320px;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+      }
+      
+      .notification.success {
+        border-color: rgba(76, 175, 80, 0.5);
+      }
+      
+      .notification.error {
+        border-color: rgba(255, 82, 82, 0.5);
+      }
+      
+      .notification.warning {
+        border-color: rgba(255, 152, 0, 0.5);
+      }
+      
+      .icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+      
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fff;
+      }
+      
+      .message {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.4;
+      }
+      
+      .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(3, 218, 198, 0.3);
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: #03DAC6;
+        animation: progress linear;
+      }
+      
+      .notification.success .progress-fill {
+        background: #4CAF50;
+      }
+      
+      .notification.error .progress-fill {
+        background: #FF5252;
+      }
+      
+      .notification.warning .progress-fill {
+        background: #FF9800;
+      }
+      
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes progress {
+        from {
+          width: 100%;
+        }
+        to {
+          width: 0%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="notification" class="notification">
+      <div class="icon" id="icon">ℹ️</div>
+      <div class="content">
+        <div class="title" id="title">Notification</div>
+        <div class="message" id="message">This is a notification message</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+    </div>
+    
+    <script>
+      // Get notification data from query params
+      const params = new URLSearchParams(window.location.search);
+      const type = params.get('type') || 'info';
+      const title = params.get('title') || 'Notification';
+      const message = params.get('message') || '';
+      const duration = parseInt(params.get('duration') || '3000');
+      
+      // Update UI
+      document.getElementById('title').textContent = decodeURIComponent(title);
+      document.getElementById('message').textContent = decodeURIComponent(message);
+      
+      const notification = document.getElementById('notification');
+      const progress = document.getElementById('progress');
+      const icon = document.getElementById('icon');
+      
+      // Set type-specific styles
+      notification.classList.add(type);
+      
+      switch (type) {
+        case 'success':
+          icon.textContent = '✅';
+          break;
+        case 'error':
+          icon.textContent = '❌';
+          break;
+        case 'warning':
+          icon.textContent = '⚠️';
+          break;
+        default:
+          icon.textContent = 'ℹ️';
+      }
+      
+      // Animate progress bar
+      progress.style.animationDuration = `${duration}ms`;
+      
+      // Auto-close after duration
+      setTimeout(() => {
+        window.close();
+      }, duration);
+    </script>
+  </body>
+</html>

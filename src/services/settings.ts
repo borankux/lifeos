@@ -3,6 +3,8 @@ import path from 'path';
 
 export interface Settings {
   activeProjectId?: number;
+  theme?: 'light' | 'dark';
+  hideOldCompletedTasks?: boolean;
 }
 
 const SETTINGS_FILENAME = 'settings.json';
