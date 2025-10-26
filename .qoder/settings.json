@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!/mnt/c/Users/mirza/Desktop/lifeos/**)",
+      "Edit(!/mnt/c/Users/mirza/Desktop/lifeos/**)"
+    ],
+    "allow": [
+      "Read(/mnt/c/Users/mirza/Desktop/lifeos/**)",
+      "Edit(/mnt/c/Users/mirza/Desktop/lifeos/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}
