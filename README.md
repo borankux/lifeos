@@ -12,7 +12,7 @@
 </p>
 
 ## 🚀 Overview
-
+![alt text](5a9d3df262b7becf6487f3117d6146bb-1.png)
 LifeOS is a powerful, **local-first productivity suite** that helps you organize your life with integrated tools for task management, note-taking, habit tracking, and knowledge management. Built with Electron and React, it provides a seamless desktop experience for Windows, macOS, and Linux.
 
 **Privacy First**: Your data stays on your computer. Everything is stored locally in SQLite with no cloud dependencies.
