@@ -25,10 +25,13 @@ export function purgeDatabase(): { success: boolean; message: string } {
       db.prepare('DELETE FROM notes').run();
       db.prepare('DELETE FROM notebooks').run();
       db.prepare('DELETE FROM activities').run();
-      db.prepare('DELETE FROM metrics_events').run();
+      db.prepare('DELETE FROM events').run();
+      db.prepare('DELETE FROM task_states').run();
+      db.prepare('DELETE FROM daily_aggregates').run();
+      db.prepare('DELETE FROM metrics_config').run();
       
       // Reset auto-increment sequences
-      db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('projects', 'tasks', 'qa_collections', 'qa_questions', 'qa_answers', 'notebooks', 'notes', 'activities', 'metrics_events')").run();
+      db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('projects', 'tasks', 'qa_collections', 'qa_questions', 'qa_answers', 'notebooks', 'notes', 'activities', 'events', 'task_states', 'daily_aggregates', 'metrics_config')").run();
     });
     
     transaction();
