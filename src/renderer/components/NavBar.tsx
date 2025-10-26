@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Project } from '../../common/types';
 import { ProjectSwitcher } from './ProjectSwitcher';
+import { DateInfoModule } from './DateInfoModule';
 
 interface NavBarProps {
   projects: Project[];
@@ -12,7 +13,7 @@ interface NavBarProps {
 
 export function NavBar({ projects, activeProjectId, onSelect, onCreate, onDelete }: NavBarProps) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
       <ProjectSwitcher 
         projects={projects} 
         activeProjectId={activeProjectId ?? undefined} 
@@ -20,6 +21,7 @@ export function NavBar({ projects, activeProjectId, onSelect, onCreate, onDelete
         onCreate={onCreate}
         onDelete={onDelete}
       />
+      <DateInfoModule />
     </div>
   );
 }

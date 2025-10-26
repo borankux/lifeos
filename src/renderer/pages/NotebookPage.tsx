@@ -29,6 +29,7 @@ export default function NotebookPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showNotebookModal, setShowNotebookModal] = useState(false);
   
   const [newNotebookName, setNewNotebookName] = useState('');
   const [newNotebookIcon, setNewNotebookIcon] = useState('📓');
@@ -86,6 +87,7 @@ export default function NotebookPage() {
         setNewNotebookName('');
         setNewNotebookDesc('');
         setNewNotebookIcon('📓');
+        setShowNotebookModal(false);
         await loadNotebooks();
         
         window.api.notification.show({
@@ -193,80 +195,27 @@ export default function NotebookPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '280px 350px 1fr', gap: '1rem', height: '100%' }}>
         {/* Notebooks Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
-            📚 Notebooks
-          </h2>
-          
-          <div style={{ padding: '1rem', background: 'var(--card-bg)', borderRadius: '12px', border: '2px solid var(--card-border)' }}>
-            <input
-              placeholder="Notebook name..."
-              value={newNotebookName}
-              onChange={(e) => setNewNotebookName(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid var(--card-border)',
-                background: 'var(--hover-bg)',
-                color: 'var(--text-primary)',
-                fontSize: '0.875rem'
-              }}
-            />
-            
-            <input
-              placeholder="Icon (emoji)"
-              value={newNotebookIcon}
-              onChange={(e) => setNewNotebookIcon(e.target.value)}
-              maxLength={2}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid var(--card-border)',
-                background: 'var(--hover-bg)',
-                color: 'var(--text-primary)',
-                fontSize: '0.875rem',
-                textAlign: 'center'
-              }}
-            />
-            
-            <textarea
-              placeholder="Description..."
-              value={newNotebookDesc}
-              onChange={(e) => setNewNotebookDesc(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid var(--card-border)',
-                background: 'var(--hover-bg)',
-                color: 'var(--text-primary)',
-                fontSize: '0.875rem',
-                minHeight: '60px',
-                resize: 'vertical',
-                fontFamily: 'inherit'
-              }}
-            />
-            
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+              📚 Notebooks
+            </h2>
             <button
-              onClick={handleCreateNotebook}
-              disabled={!newNotebookName.trim()}
+              onClick={() => setShowNotebookModal(true)}
               style={{
-                width: '100%',
-                padding: '0.5rem',
-                borderRadius: '6px',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
                 border: 'none',
-                background: newNotebookName.trim() ? '#03DAC6' : 'rgba(255,255,255,0.1)',
-                color: newNotebookName.trim() ? '#121212' : 'var(--text-secondary)',
-                cursor: newNotebookName.trim() ? 'pointer' : 'not-allowed',
+                background: '#03DAC6',
+                color: '#121212',
+                cursor: 'pointer',
                 fontWeight: 600,
-                fontSize: '0.875rem'
+                fontSize: '0.875rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.375rem'
               }}
             >
-              Create Notebook
+              ➕ New
             </button>
           </div>
 
@@ -505,6 +454,133 @@ export default function NotebookPage() {
           )}
         </div>
       </div>
+
+      {/* Create Notebook Modal */}
+      {showNotebookModal && (
+        <div
+          onClick={() => setShowNotebookModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--card-bg)',
+              borderRadius: '16px',
+              border: '2px solid var(--card-border)',
+              padding: '1.5rem',
+              width: '90%',
+              maxWidth: '400px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>
+              🆕 Create New Notebook
+            </h3>
+            
+            <input
+              placeholder="Notebook name..."
+              value={newNotebookName}
+              onChange={(e) => setNewNotebookName(e.target.value)}
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--hover-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem'
+              }}
+            />
+            
+            <input
+              placeholder="Icon (emoji)"
+              value={newNotebookIcon}
+              onChange={(e) => setNewNotebookIcon(e.target.value)}
+              maxLength={2}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--hover-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem',
+                textAlign: 'center'
+              }}
+            />
+            
+            <textarea
+              placeholder="Description (optional)..."
+              value={newNotebookDesc}
+              onChange={(e) => setNewNotebookDesc(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '1.5rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--hover-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem',
+                minHeight: '80px',
+                resize: 'vertical',
+                fontFamily: 'inherit'
+              }}
+            />
+            
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => setShowNotebookModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '2px solid var(--card-border)',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateNotebook}
+                disabled={!newNotebookName.trim()}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: newNotebookName.trim() ? '#03DAC6' : 'rgba(255,255,255,0.1)',
+                  color: newNotebookName.trim() ? '#121212' : 'var(--text-secondary)',
+                  cursor: newNotebookName.trim() ? 'pointer' : 'not-allowed',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

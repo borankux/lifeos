@@ -86,6 +86,102 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* Settings at the bottom */}
       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        {/* Quick Access Floating Buttons */}
+        {!isCollapsed && (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '0.5rem',
+            padding: '0 0.5rem 1rem 0.5rem',
+            marginBottom: '0.5rem',
+            borderBottom: '1px solid rgba(255,255,255,0.08)'
+          }}>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: 'var(--text-tertiary)', 
+              fontWeight: 500,
+              padding: '0 0.25rem'
+            }}>
+              Quick Actions
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => window.location.hash = '/qa'}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'linear-gradient(135deg, #6200EE 0%, #3700B3 100%)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                ❓ Ask
+              </button>
+              
+              <button
+                onClick={() => window.location.hash = '/notebook'}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'linear-gradient(135deg, #03DAC6 0%, #018786 100%)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                📓 Note
+              </button>
+              
+              <button
+                onClick={() => window.location.hash = '/kanban'}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'linear-gradient(135deg, #FF5252 0%, #B71C1C 100%)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                ✅ Task
+              </button>
+            </div>
+          </div>
+        )}
         <NavLink to="/settings" style={linkStyle} title="Settings">
           <span style={iconStyle}>⚙️</span>
           {!isCollapsed && <span>Settings</span>}

@@ -35,6 +35,8 @@ export default function QA() {
   const [questions, setQuestions] = useState<QAQuestion[]>([]);
   const [selectedQuestion, setSelectedQuestion] = useState<QAQuestion | null>(null);
   const [answers, setAnswers] = useState<QAAnswer[]>([]);
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
   
   const [newCollectionName, setNewCollectionName] = useState('');
   const [newQuestionText, setNewQuestionText] = useState('');
@@ -104,6 +106,7 @@ export default function QA() {
       
       if (response.ok) {
         setNewCollectionName('');
+        setShowCollectionModal(false);
         await loadCollections();
         
         window.api.notification.show({
@@ -129,6 +132,7 @@ export default function QA() {
       
       if (response.ok) {
         setNewQuestionText('');
+        setShowQuestionModal(false);
         await loadQuestions(selectedCollection.id);
         await loadCollections();
         
@@ -238,44 +242,28 @@ export default function QA() {
       <div style={{ display: 'grid', gridTemplateColumns: '280px 400px 1fr', gap: '1rem', height: '100%' }}>
         {/* Collections Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
-          <div>
-            <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
               📚 Collections
             </h2>
-            
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <input
-                placeholder="New collection..."
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateCollection()}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--card-border)',
-                  background: 'var(--card-bg)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.875rem'
-                }}
-              />
-              <button
-                onClick={handleCreateCollection}
-                disabled={!newCollectionName.trim()}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: newCollectionName.trim() ? '#03DAC6' : 'rgba(255,255,255,0.1)',
-                  color: newCollectionName.trim() ? '#121212' : 'var(--text-secondary)',
-                  cursor: newCollectionName.trim() ? 'pointer' : 'not-allowed',
-                  fontWeight: 600,
-                  fontSize: '0.875rem'
-                }}
-              >
-                Add
-              </button>
-            </div>
+            <button
+              onClick={() => setShowCollectionModal(true)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#03DAC6',
+                color: '#121212',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.375rem'
+              }}
+            >
+              ➕ New
+            </button>
           </div>
 
           <div style={{ flex: 1, overflow: 'auto' }}>
@@ -307,49 +295,29 @@ export default function QA() {
 
         {/* Questions List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
-          <div>
-            <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
               ❓ Questions
             </h2>
-            
             {selectedCollection && (
-              <div style={{ marginTop: '1rem' }}>
-                <textarea
-                  placeholder="Enter your question..."
-                  value={newQuestionText}
-                  onChange={(e) => setNewQuestionText(e.target.value)}
-                  style={{
-                    width: '100%',
-                    minHeight: '60px',
-                    padding: '0.5rem',
-                    borderRadius: '6px',
-                    border: '1px solid var(--card-border)',
-                    background: 'var(--card-bg)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.875rem',
-                    resize: 'vertical',
-                    fontFamily: 'inherit'
-                  }}
-                />
-                <button
-                  onClick={handleCreateQuestion}
-                  disabled={!newQuestionText.trim()}
-                  style={{
-                    marginTop: '0.5rem',
-                    width: '100%',
-                    padding: '0.5rem',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background: newQuestionText.trim() ? '#6200EE' : 'rgba(255,255,255,0.1)',
-                    color: '#fff',
-                    cursor: newQuestionText.trim() ? 'pointer' : 'not-allowed',
-                    fontWeight: 600,
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  Add Question
-                </button>
-              </div>
+              <button
+                onClick={() => setShowQuestionModal(true)}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#6200EE',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem'
+                }}
+              >
+                ➕ Ask
+              </button>
             )}
           </div>
 
@@ -568,6 +536,191 @@ export default function QA() {
           )}
         </div>
       </div>
+
+      {/* Create Collection Modal */}
+      {showCollectionModal && (
+        <div
+          onClick={() => setShowCollectionModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--card-bg)',
+              borderRadius: '16px',
+              border: '2px solid var(--card-border)',
+              padding: '1.5rem',
+              width: '90%',
+              maxWidth: '400px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>
+              🆕 Create New Collection
+            </h3>
+            
+            <input
+              placeholder="Collection name..."
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateCollection()}
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '1.5rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--hover-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem'
+              }}
+            />
+            
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => setShowCollectionModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '2px solid var(--card-border)',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCollection}
+                disabled={!newCollectionName.trim()}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: newCollectionName.trim() ? '#03DAC6' : 'rgba(255,255,255,0.1)',
+                  color: newCollectionName.trim() ? '#121212' : 'var(--text-secondary)',
+                  cursor: newCollectionName.trim() ? 'pointer' : 'not-allowed',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Question Modal */}
+      {showQuestionModal && (
+        <div
+          onClick={() => setShowQuestionModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--card-bg)',
+              borderRadius: '16px',
+              border: '2px solid var(--card-border)',
+              padding: '1.5rem',
+              width: '90%',
+              maxWidth: '500px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>
+              ❓ Add New Question
+            </h3>
+            
+            <textarea
+              placeholder="Enter your question..."
+              value={newQuestionText}
+              onChange={(e) => setNewQuestionText(e.target.value)}
+              autoFocus
+              style={{
+                width: '100%',
+                minHeight: '120px',
+                padding: '0.75rem',
+                marginBottom: '1.5rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--hover-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                lineHeight: 1.6
+              }}
+            />
+            
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => setShowQuestionModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '2px solid var(--card-border)',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateQuestion}
+                disabled={!newQuestionText.trim()}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: newQuestionText.trim() ? '#6200EE' : 'rgba(255,255,255,0.1)',
+                  color: newQuestionText.trim() ? '#fff' : 'var(--text-secondary)',
+                  cursor: newQuestionText.trim() ? 'pointer' : 'not-allowed',
+                  fontWeight: 600,
+                  fontSize: '1rem'
+                }}
+              >
+                Add Question
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

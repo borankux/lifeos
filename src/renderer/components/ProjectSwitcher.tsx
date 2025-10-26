@@ -2,6 +2,16 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import type { Project } from '../../common/types';
 import { ConfirmDialog } from './ConfirmDialog';
 
+interface ProjectStats {
+  taskCount: number;
+  completedCount: number;
+  inProgressCount: number;
+}
+
+interface ProjectWithStats extends Project {
+  stats?: ProjectStats;
+}
+
 interface ProjectSwitcherProps {
   projects: Project[];
   activeProjectId?: number;
@@ -15,6 +25,7 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
   const [newProjectName, setNewProjectName] = useState('');
   const [creating, setCreating] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [projectStats, setProjectStats] = useState<Record<number, ProjectStats>>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -34,6 +45,43 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
       document.removeEventListener('keydown', onEsc);
     };
   }, []);
+
+  // Fetch project statistics
+  useEffect(() => {
+    async function fetchProjectStats() {
+      const stats: Record<number, ProjectStats> = {};
+      
+      for (const project of projects) {
+        try {
+          const response = await window.api.tasks.listByProject(project.id);
+          if (response.ok && response.data) {
+            const tasks = response.data;
+            const completedCount = tasks.filter(t => t.status === 'Completed').length;
+            const inProgressCount = tasks.filter(t => t.status === 'In Progress').length;
+            
+            stats[project.id] = {
+              taskCount: tasks.length,
+              completedCount,
+              inProgressCount
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch stats for project ${project.id}:`, error);
+          stats[project.id] = {
+            taskCount: 0,
+            completedCount: 0,
+            inProgressCount: 0
+          };
+        }
+      }
+      
+      setProjectStats(stats);
+    }
+    
+    if (projects.length > 0) {
+      fetchProjectStats();
+    }
+  }, [projects]);
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -64,32 +112,54 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
 
   return (
     <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        aria-haspopup="menu"
-        aria-expanded={open}
+      <div
         onClick={() => setOpen((v) => !v)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.75rem',
-          padding: '0.5rem 0.75rem',
-          borderRadius: '10px',
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          gap: '1.5rem',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           color: '#fff',
           minWidth: '220px',
-          textAlign: 'left',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          backdropFilter: 'blur(10px)',
+          flex: 1,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
           <div style={{ width: 12, height: 12, borderRadius: 6, background: active?.color ?? '#888', flexShrink: 0 }} />
           <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {active ? active.name : 'No projects'}
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', opacity: 0.75 }}>▾</div>
-      </button>
+        {/* Project Statistics */}
+        {active && projectStats[active.id] && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.75rem',
+            fontSize: '0.75rem',
+            color: 'var(--text-secondary)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span>📋</span>
+              <span>{projectStats[active.id].taskCount}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ color: '#03DAC6' }}>✓</span>
+              <span>{projectStats[active.id].completedCount}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ color: '#FF9800' }}>🔄</span>
+              <span>{projectStats[active.id].inProgressCount}</span>
+            </div>
+          </div>
+        )}
+        <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
+      </div>
 
       {open && (
         <div
@@ -147,6 +217,29 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
                   >
                     <div style={{ width: 10, height: 10, borderRadius: 6, background: project.color ?? '#888', flexShrink: 0 }} />
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</div>
+                    {/* Project Statistics in Dropdown */}
+                    {projectStats[project.id] && (
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem',
+                        fontSize: '0.65rem',
+                        color: 'var(--text-secondary)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.125rem' }}>
+                          <span>📋</span>
+                          <span>{projectStats[project.id].taskCount}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.125rem' }}>
+                          <span style={{ color: '#03DAC6' }}>✓</span>
+                          <span>{projectStats[project.id].completedCount}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.125rem' }}>
+                          <span style={{ color: '#FF9800' }}>🔄</span>
+                          <span>{projectStats[project.id].inProgressCount}</span>
+                        </div>
+                      </div>
+                    )}
                     {project.id === activeProjectId && <div style={{ opacity: 0.7, fontSize: 12, flexShrink: 0 }}>Active</div>}
                   </div>
                   

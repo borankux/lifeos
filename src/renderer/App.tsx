@@ -162,14 +162,14 @@ function App() {
           onCreateProject={handleCreateProject}
           onDeleteProject={handleDeleteProject}
         />}>
-          <Route index element={<Navigate to="/kanban" replace />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="kanban" element={<KanbanPage activeProjectId={activeProjectId} />} />
           <Route path="notebook" element={<NotebookPage />} />
           <Route path="habits" element={<HabitsPage />} />
           <Route path="qa" element={<QA />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/kanban" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
     </HashRouter>

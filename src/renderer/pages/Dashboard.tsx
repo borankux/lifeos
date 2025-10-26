@@ -5,6 +5,8 @@ import { ActivityChart } from '../components/ActivityChart';
 import { DashboardStats } from '../components/DashboardStats';
 import { MetricsGauges } from '../components/MetricsGauges';
 import { QAStats } from '../components/QAStats';
+import { CountdownModule } from '../components/CountdownModule';
+import { NotebookStatsModule } from '../components/NotebookStatsModule';
 import type { Task, Project } from '../../common/types';
 
 export default function Dashboard() {
@@ -136,95 +138,95 @@ export default function Dashboard() {
         completedTasks={stats.completedTasks}
       />
 
-      <section style={{ marginTop: '0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Metrics Gauges - Efficiency & Aliveness */}
-        <MetricsGauges />
+      {/* Activity Heatmap - Full Width at Top */}
+      <div style={{ 
+        marginTop: '1rem',
+        width: '100%', 
+        borderRadius: '12px', 
+        background: 'var(--card-bg)', 
+        border: '2px solid var(--card-border)',
+        overflow: 'hidden'
+      }}>
+        <ActivityHeatmap activities={allActivities} weeksToShow={52} />
+      </div>
 
-        {/* Activity Heatmap - Full Width */}
-        <div style={{ 
-          width: '100%', 
-          borderRadius: '12px', 
-          background: 'var(--card-bg)', 
-          border: '2px solid var(--card-border)',
-          overflow: 'auto'
-        }}>
-          <ActivityHeatmap activities={allActivities} weeksToShow={12} />
+      <section style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Row 1: Life Metrics (50%) + Countdown (50%) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <MetricsGauges />
+          <CountdownModule />
         </div>
 
-        {/* Bottom Section - Activity Log on Left, Empty Space on Right */}
-        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '1rem' }}>
+        {/* Row 2: Q&A Stats (50%) + Notebook Stats (50%) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <QAStats />
+          <NotebookStatsModule />
+        </div>
+
+        {/* Row 3: Recent Activity and Daily Activity - Same height, side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Recent Activity Log */}
           <aside style={{ 
             borderRadius: 12, 
             padding: '1rem', 
             background: 'var(--card-bg)', 
             border: '2px solid var(--card-border)',
-            height: 'fit-content',
-            maxHeight: '400px',
-            overflow: 'auto',
+            height: '400px',
+            display: 'flex',
+            flexDirection: 'column',
             userSelect: 'none',
             WebkitUserSelect: 'none',
           }}>
-            <h3 style={{ marginTop: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Recent Activity</h3>
-            {activities.length === 0 ? (
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', textAlign: 'center', padding: '2rem 0' }}>
-                No recent activity
-              </div>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {activities.map((a) => (
-                  <li key={a.id} style={{ 
-                    padding: '0.75rem', 
-                    borderRadius: 8, 
-                    background: 'var(--hover-bg)',
-                    border: '1px solid var(--card-border)',
-                    transition: 'all 0.2s ease'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span style={{
-                        fontSize: '0.7rem',
-                        padding: '0.125rem 0.5rem',
-                        borderRadius: 4,
-                        background: a.type === 'task' 
-                          ? 'rgba(3, 218, 198, 0.2)' 
-                          : a.type === 'project' 
-                          ? 'rgba(98, 0, 238, 0.2)' 
-                          : 'rgba(255, 255, 255, 0.1)',
-                        color: a.type === 'task'
-                          ? '#03DAC6'
-                          : a.type === 'project'
-                          ? '#9333ea'
-                          : '#fff',
-                        fontWeight: 600,
-                        textTransform: 'uppercase'
-                      }}>
-                        {a.type}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>{a.message}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
-                      {new Date(a.created_at).toLocaleString()}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Recent Activity</h3>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              {activities.length === 0 ? (
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', textAlign: 'center', padding: '2rem 0' }}>
+                  No recent activity
+                </div>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {activities.map((a) => (
+                    <li key={a.id} style={{ 
+                      padding: '0.75rem', 
+                      borderRadius: 8, 
+                      background: 'var(--hover-bg)',
+                      border: '1px solid var(--card-border)',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <span style={{
+                          fontSize: '0.7rem',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: 4,
+                          background: a.type === 'task' 
+                            ? 'rgba(3, 218, 198, 0.2)' 
+                            : a.type === 'project' 
+                            ? 'rgba(98, 0, 238, 0.2)' 
+                            : 'rgba(255, 255, 255, 0.1)',
+                          color: a.type === 'task'
+                            ? '#03DAC6'
+                            : a.type === 'project'
+                            ? '#9333ea'
+                            : '#fff',
+                          fontWeight: 600,
+                          textTransform: 'uppercase'
+                        }}>
+                          {a.type}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>{a.message}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
+                        {new Date(a.created_at).toLocaleString()}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </aside>
 
-          {/* Empty space for future content */}
-          <div style={{ 
-            borderRadius: 12, 
-            background: 'transparent',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}>
-            {/* Daily Activity Chart */}
-            <ActivityChart activities={allActivities} daysToShow={14} />
-            
-            {/* Q&A Stats */}
-            <QAStats />
-          </div>
+          {/* Daily Activity Chart */}
+          <ActivityChart activities={allActivities} daysToShow={14} />
         </div>
       </section>
     </div>

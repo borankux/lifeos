@@ -63,24 +63,37 @@ export function TaskCard({ task, onDoubleClick }: TaskCardProps) {
         )}
       </div>
       {task.description ? (
-        <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', userSelect: 'text', cursor: 'text' }}>
+        <div style={{ 
+          marginTop: '0.5rem', 
+          fontSize: '0.8rem', 
+          color: 'var(--text-tertiary)', 
+          opacity: 0.7,
+          userSelect: 'text', 
+          cursor: 'text',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          lineHeight: '1.4'
+        }}>
           <ReactMarkdown
             components={{
-              p: ({ children }) => <p style={{ margin: '0.25rem 0' }}>{children}</p>,
-              strong: ({ children }) => <strong style={{ color: 'var(--text-primary)' }}>{children}</strong>,
-              em: ({ children }) => <em style={{ color: 'var(--text-secondary)' }}>{children}</em>,
+              p: ({ children }) => <p style={{ margin: 0, display: 'inline' }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</strong>,
+              em: ({ children }) => <em style={{ color: 'var(--text-tertiary)' }}>{children}</em>,
               code: ({ children }) => (
                 <code style={{ 
-                  background: 'var(--hover-bg)', 
+                  background: 'rgba(255, 255, 255, 0.05)', 
                   padding: '0.125rem 0.25rem', 
                   borderRadius: '3px',
-                  fontSize: '0.8rem',
+                  fontSize: '0.75rem',
                   fontFamily: 'monospace'
                 }}>{children}</code>
               ),
-              ul: ({ children }) => <ul style={{ margin: '0.25rem 0', paddingLeft: '1.25rem' }}>{children}</ul>,
-              ol: ({ children }) => <ol style={{ margin: '0.25rem 0', paddingLeft: '1.25rem' }}>{children}</ol>,
-              li: ({ children }) => <li style={{ margin: '0.125rem 0' }}>{children}</li>,
+              ul: ({ children }) => <span style={{ display: 'inline' }}>{children}</span>,
+              ol: ({ children }) => <span style={{ display: 'inline' }}>{children}</span>,
+              li: ({ children }) => <span style={{ display: 'inline' }}>• {children} </span>,
             }}
           >
             {task.description}

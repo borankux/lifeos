@@ -12,6 +12,7 @@ interface ActivityHeatmapProps {
 }
 
 export function ActivityHeatmap({ activities, weeksToShow = 52 }: ActivityHeatmapProps) {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const heatmapData = useMemo(() => {
     const today = new Date();
     const startDate = new Date(today);
@@ -113,35 +114,75 @@ export function ActivityHeatmap({ activities, weeksToShow = 52 }: ActivityHeatma
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+  // Auto-scroll to show current day at the right
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, [weeks]);
+
   return (
-    <div style={{ position: 'relative', padding: '1rem', userSelect: 'none', WebkitUserSelect: 'none' }}>
-      <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>Activity Calendar</h3>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>({activities.length} total activities)</span>
+    <div style={{ position: 'relative', padding: '1.25rem', userSelect: 'none', WebkitUserSelect: 'none' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📊</span>
+            Activity Calendar
+          </h3>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>({activities.length} total activities)</span>
+        </div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+          {weeksToShow} weeks • Scroll to view history
+        </div>
       </div>
       
-      <div style={{ display: 'flex', gap: '0.2rem', overflow: 'auto', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', overflow: 'hidden' }}>
         {/* Day labels */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', fontSize: '0.65rem', color: 'var(--text-secondary)', paddingTop: '1rem' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '0.25rem', 
+          fontSize: '0.65rem', 
+          color: 'var(--text-secondary)', 
+          paddingTop: '1.5rem',
+          minWidth: '32px'
+        }}>
           {dayNames.map((day, i) => (
-            <div key={day} style={{ height: 10, lineHeight: '10px', visibility: i % 2 === 1 ? 'visible' : 'hidden' }}>
+            <div key={day} style={{ 
+              height: 12, 
+              lineHeight: '12px', 
+              visibility: i % 2 === 1 ? 'visible' : 'hidden',
+              textAlign: 'right',
+              paddingRight: '0.5rem'
+            }}>
               {day}
             </div>
           ))}
         </div>
         
         {/* Heatmap grid */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          <div style={{ display: 'flex', gap: '0.15rem' }}>
+        <div ref={scrollContainerRef} style={{ 
+          flex: 1, 
+          overflow: 'auto',
+          paddingBottom: '0.5rem'
+        }}>
+          <div style={{ display: 'flex', gap: '0.25rem', minWidth: 'fit-content' }}>
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+              <div key={weekIndex} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {/* Month label */}
                 {weekIndex === 0 || new Date(week[0]?.date || '').getDate() <= 7 ? (
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', height: '0.9rem', marginBottom: '0.15rem' }}>
+                  <div style={{ 
+                    fontSize: '0.7rem', 
+                    color: 'var(--text-secondary)', 
+                    height: '1.25rem', 
+                    marginBottom: '0.25rem',
+                    fontWeight: 600,
+                    textAlign: 'center'
+                  }}>
                     {week[0]?.date ? monthNames[new Date(week[0].date).getMonth()] : ''}
                   </div>
                 ) : (
-                  <div style={{ height: '0.9rem', marginBottom: '0.15rem' }} />
+                  <div style={{ height: '1.25rem', marginBottom: '0.25rem' }} />
                 )}
                 
                 {/* Days */}
@@ -164,11 +205,11 @@ export function ActivityHeatmap({ activities, weeksToShow = 52 }: ActivityHeatma
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '0.5rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       color: day.count > 0 ? 'var(--text-primary)' : 'transparent'
                     }}
                   >
-                    {day.count > 0 ? day.count : ''}
+                    {day.count > 5 ? day.count : ''}
                   </div>
                 ))}
               </div>

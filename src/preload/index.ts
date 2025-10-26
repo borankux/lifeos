@@ -132,6 +132,10 @@ const api = {
       ipcRenderer.invoke('notebook:searchNotes', args) as Promise<ApiResponse<any[]>>,
     getStats: () =>
       ipcRenderer.invoke('notebook:getStats') as Promise<ApiResponse<any>>
+  },
+  database: {
+    purge: () =>
+      ipcRenderer.invoke('database:purge') as Promise<ApiResponse<{ success: boolean; message: string }>>
   }
 };
 

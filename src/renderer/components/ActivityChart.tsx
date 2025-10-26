@@ -51,6 +51,9 @@ export function ActivityChart({ activities, daysToShow = 14 }: ActivityChartProp
       border: '2px solid var(--card-border)',
       userSelect: 'none',
       WebkitUserSelect: 'none',
+      height: '400px',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       <h3 style={{ 
         margin: '0 0 1.5rem 0', 
@@ -70,9 +73,10 @@ export function ActivityChart({ activities, daysToShow = 14 }: ActivityChartProp
         display: 'flex',
         alignItems: 'flex-end',
         gap: '0.5rem',
-        height: '120px',
+        height: '150px',
         padding: '0.5rem 0',
-        position: 'relative'
+        position: 'relative',
+        flex: 1
       }}>
         {/* Horizontal grid lines */}
         <div style={{
@@ -145,13 +149,13 @@ export function ActivityChart({ activities, daysToShow = 14 }: ActivityChartProp
                   {day.count > 0 && (
                     <div style={{
                       position: 'absolute',
-                      top: '-1.25rem',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
+                      top: '-1.5rem',
+                      left: 0,
+                      right: 0,
                       fontSize: '0.7rem',
                       fontWeight: 700,
                       color: isToday ? '#03DAC6' : 'rgba(98, 0, 238, 0.9)',
-                      whiteSpace: 'nowrap'
+                      textAlign: 'center'
                     }}>
                       {day.count}
                     </div>
