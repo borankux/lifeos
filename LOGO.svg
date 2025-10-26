@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="gradBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="gradFg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="white" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+
+      <rect x="64" y="64" width="896" height="896" rx="180" fill="url(#gradBg)"/>
+      <g filter="url(#softShadow)">
+        <circle cx="512" cy="460" r="230" fill="none" stroke="url(#gradFg)" stroke-width="64" stroke-linecap="round"/>
+        <!-- Tail to form question mark -->
+        <path d="M 694 460
+                 C 694 360 615 280 512 280
+                 C 409 280 330 360 330 460"
+              fill="none" stroke="url(#gradFg)" stroke-width="64" stroke-linecap="round"/>
+        <!-- Dot -->
+        <circle cx="512" cy="740" r="38" fill="white" opacity="0.95"/>
+        <!-- Checkmark inside lower right -->
+        <path d="M 560 560 L 620 620 L 710 510"
+              fill="none" stroke="white" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      </g>
+    
+</svg>

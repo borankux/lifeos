@@ -21,6 +21,11 @@ function registerIpcHandlers() {
 }
 
 async function createMainWindow() {
+  // Get the app path to locate the icon
+  const iconPath = isDev 
+    ? path.join(__dirname, '../../LOGO.svg')  // Development: project root
+    : path.join(process.resourcesPath, 'LOGO.svg');  // Production: packaged resources
+  
   // Create the browser window with custom titlebar
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -29,6 +34,7 @@ async function createMainWindow() {
     minHeight: 600,
     frame: false, // Custom titlebar
     backgroundColor: '#121212',
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
