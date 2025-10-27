@@ -37,7 +37,16 @@ ipcMain.handle(
     frequency?: 'daily' | 'weekly' | 'monthly';
     targetCount?: number;
   }) => {
-    return createHabit(args);
+    // Provide defaults to match schema requirements
+    return createHabit({
+      name: args.name,
+      description: args.description,
+      icon: args.icon,
+      color: args.color,
+      category: args.category,
+      frequency: args.frequency || 'daily',
+      targetCount: args.targetCount || 1
+    });
   })
 );
 
@@ -59,7 +68,12 @@ ipcMain.handle(
 ipcMain.handle(
   'habits:log',
   wrapIpc((_event, args: { habitId: number; loggedDate: string; count?: number; note?: string }) => {
-    return logHabit(args);
+    return logHabit({
+      habitId: args.habitId,
+      loggedDate: args.loggedDate,
+      count: args.count || 1,
+      note: args.note
+    });
   })
 );
 

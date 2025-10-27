@@ -31,6 +31,7 @@ export default function NotebookPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   const [newNotebookName, setNewNotebookName] = useState('');
   const [newNotebookIcon, setNewNotebookIcon] = useState('📓');
@@ -199,6 +200,10 @@ export default function NotebookPage() {
     setSaveStatus('idle');
   }
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -223,9 +228,15 @@ export default function NotebookPage() {
   }, [editTitle, editContent, isEditing, selectedNote]);
 
   return (
-    <div style={{ height: '100%', overflow: 'hidden', padding: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 350px 1fr', gap: '1rem', height: '100%' }}>
-        {/* Notebooks Sidebar */}
+    <div style={{ height: '100%', overflow: 'hidden', padding: isFullscreen ? 0 : '1rem' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isFullscreen ? '1fr' : '280px 350px 1fr', 
+        gap: isFullscreen ? 0 : '1rem', 
+        height: '100%' 
+      }}>
+        {/* Notebooks Sidebar - Hidden in fullscreen */}
+        {!isFullscreen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
@@ -284,8 +295,10 @@ export default function NotebookPage() {
             ))}
           </div>
         </div>
+        )}
 
-        {/* Notes List */}
+        {/* Notes List - Hidden in fullscreen */}
+        {!isFullscreen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
@@ -366,9 +379,20 @@ export default function NotebookPage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Note Editor/Viewer */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden', padding: '1.5rem', background: 'var(--card-bg)', borderRadius: '12px', border: '2px solid var(--card-border)' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '1rem', 
+          overflow: 'hidden', 
+          padding: isFullscreen ? '2rem' : '1.5rem', 
+          background: 'var(--card-bg)', 
+          borderRadius: isFullscreen ? 0 : '12px', 
+          border: isFullscreen ? 'none' : '2px solid var(--card-border)',
+          height: isFullscreen ? '100vh' : 'auto'
+        }}>
           {selectedNote ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -468,6 +492,22 @@ export default function NotebookPage() {
                     </>
                   ) : (
                     <>
+                      {/* Fullscreen toggle button */}
+                      <button
+                        onClick={toggleFullscreen}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          border: '1px solid var(--card-border)',
+                          background: isFullscreen ? 'rgba(98, 0, 238, 0.15)' : 'transparent',
+                          color: isFullscreen ? '#6200EE' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          fontWeight: 600
+                        }}
+                      >
+                        {isFullscreen ? '🗗 Exit Fullscreen' : '🗖 Fullscreen'}
+                      </button>
                       <button
                         onClick={handleEditNote}
                         style={{

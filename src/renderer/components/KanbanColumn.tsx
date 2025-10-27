@@ -65,8 +65,8 @@ export function KanbanColumn({ status, tasks, onCreateTask, onTaskDoubleClick }:
         </div>
       </SortableContext>
       
-      {/* Only show task creation form in To-Do (backlog) column */}
-      {status === 'To-Do' && (
+      {/* Show task creation form in Backlog column */}
+      {status === 'Backlog' && (
         <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem' }}>
           <input
             placeholder="Add task to backlog"

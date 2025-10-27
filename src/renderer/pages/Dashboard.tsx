@@ -7,6 +7,7 @@ import { MetricsGauges } from '../components/MetricsGauges';
 import { QAStats } from '../components/QAStats';
 import { CountdownModule } from '../components/CountdownModule';
 import { NotebookStatsModule } from '../components/NotebookStatsModule';
+import { HabitStatsModule } from '../components/HabitStatsModule';
 import type { Task, Project } from '../../common/types';
 
 export default function Dashboard() {
@@ -157,10 +158,11 @@ export default function Dashboard() {
           <CountdownModule />
         </div>
 
-        {/* Row 2: Q&A Stats (50%) + Notebook Stats (50%) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        {/* Row 2: Q&A Stats (33%) + Notebook Stats (33%) + Habit Stats (33%) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
           <QAStats />
           <NotebookStatsModule />
+          <HabitStatsModule />
         </div>
 
         {/* Row 3: Recent Activity and Daily Activity - Same height, side by side */}

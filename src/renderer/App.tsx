@@ -46,13 +46,7 @@ function Layout({ projects, activeProjectId, onSelectProject, onCreateProject, o
         </aside>
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <header style={{ padding: '0.75rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.04)' }} className="no-drag">
-            <NavBar 
-              projects={projects} 
-              activeProjectId={activeProjectId} 
-              onSelect={onSelectProject} 
-              onCreate={onCreateProject}
-              onDelete={onDeleteProject}
-            />
+            <NavBar />
           </header>
           <main style={{ padding: '1rem', overflow: 'auto', flex: 1 }}>
             <Outlet />
@@ -150,6 +144,8 @@ function App() {
 
   function handleSelectProject(id: number) {
     setActiveProjectId(id);
+    // Persist selection to database
+    void window.api.projects.setActive(id);
   }
 
   return (
@@ -164,7 +160,7 @@ function App() {
         />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="kanban" element={<KanbanPage activeProjectId={activeProjectId} />} />
+          <Route path="kanban" element={<KanbanPage activeProjectId={activeProjectId} projects={projects} onSelectProject={handleSelectProject} onCreateProject={handleCreateProject} onDeleteProject={handleDeleteProject} />} />
           <Route path="notebook" element={<NotebookPage />} />
           <Route path="habits" element={<HabitsPage />} />
           <Route path="qa" element={<QA />} />

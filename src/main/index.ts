@@ -19,6 +19,7 @@ function registerIpcHandlers() {
   require('./ipc/qa');
   require('./ipc/notebook');
   require('./ipc/database');
+  require('./ipc/habits');
 }
 
 async function createMainWindow() {

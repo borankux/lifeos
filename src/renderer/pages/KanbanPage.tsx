@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import type { Task } from '../../common/types';
+import type { Task, Project } from '../../common/types';
 import { KanbanColumn } from '../components/KanbanColumn';
+import { ProjectSwitcher } from '../components/ProjectSwitcher';
 import type { KanbanStatus } from '../constants';
 import { DndContext, DragOverlay, closestCenter, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -12,13 +13,18 @@ import { useThemeStore } from '../../store/theme';
 
 interface KanbanPageProps {
   activeProjectId?: number | null;
+  projects?: Project[];
+  onSelectProject?: (id: number) => void;
+  onCreateProject?: (name: string) => Promise<void>;
+  onDeleteProject?: (id: number) => Promise<void>;
 }
 
-export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
+export default function KanbanPage({ activeProjectId, projects, onSelectProject, onCreateProject, onDeleteProject }: KanbanPageProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [hideOldCompleted, setHideOldCompleted] = useState(false);
+  const [showArchivedView, setShowArchivedView] = useState(false);
 
   // Load settings
   useEffect(() => {
@@ -59,6 +65,18 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
 
   const handleTaskDoubleClick = (task: Task) => {
     setSelectedTask(task);
+    // Save selection to localStorage for persistence
+    if (activeProjectId) {
+      localStorage.setItem(`kanban_selected_task_${activeProjectId}`, String(task.id));
+    }
+  };
+
+  const handleCloseTaskDetail = () => {
+    setSelectedTask(null);
+    // Clear selection from localStorage
+    if (activeProjectId) {
+      localStorage.removeItem(`kanban_selected_task_${activeProjectId}`);
+    }
   };
 
   const handleUpdateTask = async (id: number, updates: Partial<Task>) => {
@@ -90,6 +108,28 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
     }
   };
 
+  const handleRestoreToBacklog = async (taskId: number) => {
+    if (!activeProjectId) return;
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        await window.api.tasks.update(taskId, { status: 'Backlog' } as any);
+        const res = await window.api.tasks.listByProject(activeProjectId);
+        if (res.ok && res.data) setTasks(res.data.filter(t => t.status !== 'Deleted'));
+        useActivityStore.getState().pushActivity('task', `Restored "${task.title}" to Backlog`);
+        
+        window.api.notification.show({
+          type: 'success',
+          title: 'Task Restored',
+          message: `"${task.title}" moved to Backlog`,
+          duration: 2000
+        });
+      }
+    } catch (error) {
+      console.error('Failed to restore task:', error);
+    }
+  };
+
   useEffect(() => {
     if (!activeProjectId) {
       setTasks([]);
@@ -98,9 +138,23 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
 
     async function loadTasks() {
       try {
-  const res = await window.api.tasks.listByProject(activeProjectId!);
+        const res = await window.api.tasks.listByProject(activeProjectId!);
         if (res.ok && res.data) {
-          setTasks(res.data);
+          // Filter out deleted tasks
+          const filteredData = res.data.filter(t => t.status !== 'Deleted');
+          setTasks(filteredData);
+          
+          // Restore selected task from localStorage
+          const savedTaskId = localStorage.getItem(`kanban_selected_task_${activeProjectId}`);
+          if (savedTaskId) {
+            const taskToSelect = filteredData.find(t => t.id === parseInt(savedTaskId));
+            if (taskToSelect) {
+              setSelectedTask(taskToSelect);
+            } else {
+              // Task no longer exists, clear localStorage
+              localStorage.removeItem(`kanban_selected_task_${activeProjectId}`);
+            }
+          }
         } else {
           console.error('Failed to load tasks:', res.error);
           setTasks([]);
@@ -293,26 +347,58 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
       ) : (
         // Project exists - show kanban board
         <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>Kanban</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '0 1 auto' }}>
+          <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>Kanban</h2>
+          {projects && onSelectProject && onCreateProject && onDeleteProject && (
+            <ProjectSwitcher
+              projects={projects}
+              activeProjectId={activeProjectId ?? undefined}
+              onSelect={onSelectProject}
+              onCreate={onCreateProject}
+              onDelete={onDeleteProject}
+            />
+          )}
+        </div>
         
-        {/* Settings Toggle */}
-        <label style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.5rem', 
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)'
-        }}>
-          <input
-            type="checkbox"
-            checked={hideOldCompleted}
-            onChange={toggleHideOldCompleted}
-            style={{ cursor: 'pointer' }}
-          />
-          Hide old completed tasks
-        </label>
+        {/* Settings Toggles */}
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '0 1 auto' }}>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            color: 'var(--text-secondary)'
+          }}>
+            <input
+              type="checkbox"
+              checked={hideOldCompleted}
+              onChange={toggleHideOldCompleted}
+              style={{ cursor: 'pointer' }}
+            />
+            Hide old completed tasks
+          </label>
+          
+          <button
+            onClick={() => setShowArchivedView(!showArchivedView)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: `2px solid ${showArchivedView ? '#03DAC6' : 'var(--card-border)'}`,
+              background: showArchivedView ? 'rgba(3, 218, 198, 0.15)' : 'var(--card-bg)',
+              color: showArchivedView ? '#03DAC6' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem'
+            }}
+          >
+            📦 {showArchivedView ? 'Hide' : 'View'} Archived
+          </button>
+        </div>
       </div>
   <DndContext 
         sensors={sensors} 
@@ -320,17 +406,83 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
         onDragEnd={handleDragEnd} 
         onDragStart={(e) => setActiveId(String(e.active?.id ?? null))}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
-          {(['To-Do', 'In Progress', 'Completed'] as KanbanStatus[]).map((status) => (
-            <KanbanColumn 
-              key={status} 
-              status={status} 
-              tasks={filteredTasks.filter((t) => t.status === status)} 
-              onCreateTask={handleCreateTask}
-              onTaskDoubleClick={handleTaskDoubleClick}
-            />
-          ))}
-        </div>
+        {showArchivedView ? (
+          /* Archived View - Show completed tasks */
+          <div style={{ 
+            padding: '1.5rem', 
+            borderRadius: '12px', 
+            background: 'var(--card-bg)', 
+            border: '2px solid var(--card-border)'
+          }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600 }}>Archived Completed Tasks</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '600px', overflowY: 'auto' }}>
+              {tasks.filter(t => t.status === 'Completed' && !filteredTasks.includes(t)).length === 0 ? (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '3rem', 
+                  color: 'var(--text-tertiary)' 
+                }}>
+                  No archived completed tasks
+                </div>
+              ) : (
+                tasks
+                  .filter(t => t.status === 'Completed' && !filteredTasks.includes(t))
+                  .map(task => (
+                    <div key={task.id} style={{
+                      padding: '1rem',
+                      borderRadius: '8px',
+                      background: 'var(--hover-bg)',
+                      border: '2px solid var(--card-border)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{task.title}</div>
+                        {task.description && (
+                          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                            {task.description.substring(0, 100)}...
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                          Completed: {new Date(task.updatedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreToBacklog(task.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: '#03DAC6',
+                          color: '#121212',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          fontSize: '0.875rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        ↺ Restore to Backlog
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Normal Kanban View */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+            {(['Backlog', 'To-Do', 'In Progress', 'Completed'] as KanbanStatus[]).map((status) => (
+              <KanbanColumn 
+                key={status} 
+                status={status} 
+                tasks={filteredTasks.filter((t) => t.status === status)} 
+                onCreateTask={handleCreateTask}
+                onTaskDoubleClick={handleTaskDoubleClick}
+              />
+            ))}
+          </div>
+        )}
         <DragOverlay 
           dropAnimation={null}
         >
@@ -355,7 +507,7 @@ export default function KanbanPage({ activeProjectId }: KanbanPageProps) {
       {selectedTask && (
         <TaskDetailPanel
           task={selectedTask}
-          onClose={() => setSelectedTask(null)}
+          onClose={handleCloseTaskDetail}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
         />

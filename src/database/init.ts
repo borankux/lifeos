@@ -4,6 +4,7 @@ import DatabaseConstructor, { Database } from 'better-sqlite3';
 import { applyMetricsSchema } from './metricsSchema';
 import { applyQASchema } from './qaSchema';
 import { applyNotebookSchema } from './notebookSchema';
+import { applyHabitsSchema } from './habitsSchema';
 
 let db: Database | null = null;
 
@@ -116,4 +117,7 @@ function runMigrations(database: Database) {
   
   // Apply Notebook schema
   applyNotebookSchema(database);
+  
+  // Apply Habits schema
+  applyHabitsSchema(database);
 }

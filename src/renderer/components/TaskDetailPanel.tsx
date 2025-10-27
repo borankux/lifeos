@@ -20,6 +20,8 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -84,6 +86,38 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
       });
       
       setIsDeleting(false);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const rejectionNote = rejectReason.trim() ? `[Rejected: ${rejectReason.trim()}]` : '[Rejected]';
+      const updatedDescription = task.description 
+        ? `${task.description}\n\n${rejectionNote}`
+        : rejectionNote;
+      
+      await onUpdate(task.id, {
+        status: 'Backlog',
+        description: updatedDescription
+      });
+      
+      window.api.notification.show({
+        type: 'info',
+        title: 'Task Rejected',
+        message: `"${task.title}" moved to Backlog`,
+        duration: 3000
+      });
+      
+      setShowRejectDialog(false);
+      onClose();
+    } catch (error) {
+      console.error('Failed to reject task:', error);
+      window.api.notification.show({
+        type: 'error',
+        title: 'Rejection Failed',
+        message: 'Failed to move task to backlog.',
+        duration: 3000
+      });
     }
   };
 
@@ -431,6 +465,24 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
         }}
       >
         <button
+          onClick={() => setShowRejectDialog(true)}
+          style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '8px',
+            border: '2px solid #FF9800',
+            background: 'transparent',
+            color: '#FF9800',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#FF980020')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        >
+          Won't Do
+        </button>
+        <button
           onClick={() => setShowDeleteConfirm(true)}
           disabled={isDeleting}
           style={{
@@ -448,7 +500,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           onMouseEnter={(e) => !isDeleting && (e.currentTarget.style.background = '#FF525220')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
-          {isDeleting ? 'Deleting...' : 'Delete Task'}
+          {isDeleting ? 'Deleting...' : 'Delete'}
         </button>
         <button
           onClick={handleSave}
@@ -469,6 +521,40 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           {isSaving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
+
+      {/* Reject Dialog */}
+      <ConfirmDialog
+        isOpen={showRejectDialog}
+        title="Reject Task"
+        message="Why won't you do this task? (Optional)"
+        confirmText="Move to Backlog"
+        cancelText="Cancel"
+        type="warning"
+        onConfirm={handleReject}
+        onCancel={() => {
+          setShowRejectDialog(false);
+          setRejectReason('');
+        }}
+      >
+        <textarea
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="e.g., Not aligned with current goals, Too complex, Dependencies missing..."
+          style={{
+            width: '100%',
+            minHeight: '100px',
+            padding: '0.75rem',
+            borderRadius: '8px',
+            border: '2px solid var(--card-border)',
+            background: 'var(--card-bg)',
+            color: 'var(--text-primary)',
+            fontSize: '0.875rem',
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            marginTop: '1rem'
+          }}
+        />
+      </ConfirmDialog>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

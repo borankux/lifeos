@@ -9,6 +9,7 @@ interface ConfirmDialogProps {
   type?: 'info' | 'danger' | 'warning';
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -19,7 +20,8 @@ export function ConfirmDialog({
   cancelText = 'Cancel',
   type = 'info',
   onConfirm,
-  onCancel
+  onCancel,
+  children
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -101,11 +103,17 @@ export function ConfirmDialog({
         
         <div style={{ 
           color: 'var(--text-secondary)', 
-          marginBottom: '1.5rem',
+          marginBottom: children ? '0.75rem' : '1.5rem',
           lineHeight: '1.5'
         }}>
           {message}
         </div>
+        
+        {children && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            {children}
+          </div>
+        )}
         
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button
