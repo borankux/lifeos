@@ -26,7 +26,13 @@ const updateTaskSchema = z.object({
     priority: z.string().max(50).optional().nullable(),
     tags: z.array(z.string().max(30)).optional().nullable(),
     position: z.number().optional(),
-    projectId: z.number().int().positive().optional()
+    projectId: z.number().int().positive().optional(),
+    estimatedMinutes: z.number().int().positive().optional().nullable(),
+    estimatedStartDate: z.string().datetime().optional().nullable(),
+    estimatedEndDate: z.string().datetime().optional().nullable(),
+    actualStartDate: z.string().datetime().optional().nullable(),
+    actualEndDate: z.string().datetime().optional().nullable(),
+    actualMinutes: z.number().int().positive().optional().nullable()
   })
 });
 
@@ -136,6 +142,30 @@ export function updateTask(input: UpdateTaskInput): Task {
   if (payload.projectId !== undefined) {
     fields.push('project_id = @projectId');
     parameters.projectId = payload.projectId;
+  }
+  if (payload.estimatedMinutes !== undefined) {
+    fields.push('estimated_minutes = @estimatedMinutes');
+    parameters.estimatedMinutes = payload.estimatedMinutes ?? null;
+  }
+  if (payload.estimatedStartDate !== undefined) {
+    fields.push('estimated_start_date = @estimatedStartDate');
+    parameters.estimatedStartDate = payload.estimatedStartDate ?? null;
+  }
+  if (payload.estimatedEndDate !== undefined) {
+    fields.push('estimated_end_date = @estimatedEndDate');
+    parameters.estimatedEndDate = payload.estimatedEndDate ?? null;
+  }
+  if (payload.actualStartDate !== undefined) {
+    fields.push('actual_start_date = @actualStartDate');
+    parameters.actualStartDate = payload.actualStartDate ?? null;
+  }
+  if (payload.actualEndDate !== undefined) {
+    fields.push('actual_end_date = @actualEndDate');
+    parameters.actualEndDate = payload.actualEndDate ?? null;
+  }
+  if (payload.actualMinutes !== undefined) {
+    fields.push('actual_minutes = @actualMinutes');
+    parameters.actualMinutes = payload.actualMinutes ?? null;
   }
 
   if (fields.length === 0) {

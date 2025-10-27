@@ -50,7 +50,15 @@ export function KanbanColumn({ status, tasks, onCreateTask, onTaskDoubleClick }:
         <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>{tasks.length}</span>
       </header>
       <SortableContext items={tasks.map((task) => `task-${task.id}`)} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '0.75rem', 
+          flex: 1, 
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingRight: '0.25rem'
+        }}>
           {tasks.map((task) => (
             <TaskCard key={task.id} task={task} onDoubleClick={onTaskDoubleClick} />
           ))}

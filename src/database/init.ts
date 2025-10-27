@@ -63,7 +63,13 @@ function runMigrations(database: Database) {
       tags TEXT,
       position REAL NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      estimated_minutes INTEGER,
+      estimated_start_date TEXT,
+      estimated_end_date TEXT,
+      actual_start_date TEXT,
+      actual_end_date TEXT,
+      actual_minutes INTEGER
     );`);
 
   database.exec(`CREATE TABLE IF NOT EXISTS activities (
@@ -81,6 +87,26 @@ function runMigrations(database: Database) {
   database.exec('CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);');
   database.exec('CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities(created_at DESC);');
   database.exec('CREATE INDEX IF NOT EXISTS idx_activities_type ON activities(type);');
+  
+  // Add time tracking columns if they don't exist
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN estimated_minutes INTEGER;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN estimated_start_date TEXT;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN estimated_end_date TEXT;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN actual_start_date TEXT;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN actual_end_date TEXT;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE tasks ADD COLUMN actual_minutes INTEGER;');
+  } catch (e) { /* Column already exists */ }
   
   // Apply metrics schema for Efficiency & Aliveness scoring
   applyMetricsSchema(database);

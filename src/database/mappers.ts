@@ -42,6 +42,12 @@ export function mapTask(row: TaskRow): Task {
     tags: safeParseTags(row.tags),
     position: row.position,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    estimatedMinutes: row.estimated_minutes ?? undefined,
+    estimatedStartDate: row.estimated_start_date ?? undefined,
+    estimatedEndDate: row.estimated_end_date ?? undefined,
+    actualStartDate: row.actual_start_date ?? undefined,
+    actualEndDate: row.actual_end_date ?? undefined,
+    actualMinutes: row.actual_minutes ?? undefined
   };
 }

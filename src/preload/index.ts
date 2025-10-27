@@ -136,6 +136,34 @@ const api = {
   database: {
     purge: () =>
       ipcRenderer.invoke('database:purge') as Promise<ApiResponse<{ success: boolean; message: string }>>
+  },
+  habits: {
+    list: () =>
+      ipcRenderer.invoke('habits:list') as Promise<ApiResponse<any[]>>,
+    get: (id: number) =>
+      ipcRenderer.invoke('habits:get', { id }) as Promise<ApiResponse<any>>,
+    create: (input: {
+      name: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      category?: string;
+      frequency?: 'daily' | 'weekly' | 'monthly';
+      targetCount?: number;
+    }) =>
+      ipcRenderer.invoke('habits:create', input) as Promise<ApiResponse<any>>,
+    update: (args: { id: number; payload: any }) =>
+      ipcRenderer.invoke('habits:update', args) as Promise<ApiResponse<any>>,
+    delete: (id: number) =>
+      ipcRenderer.invoke('habits:delete', { id }) as Promise<ApiResponse<any>>,
+    log: (args: { habitId: number; loggedDate: string; count?: number; note?: string }) =>
+      ipcRenderer.invoke('habits:log', args) as Promise<ApiResponse<any>>,
+    unlog: (args: { habitId: number; loggedDate: string }) =>
+      ipcRenderer.invoke('habits:unlog', args) as Promise<ApiResponse<any>>,
+    getLogs: (habitId: number, limit?: number) =>
+      ipcRenderer.invoke('habits:getLogs', { habitId, limit }) as Promise<ApiResponse<any[]>>,
+    getStats: () =>
+      ipcRenderer.invoke('habits:getStats') as Promise<ApiResponse<any>>
   }
 };
 

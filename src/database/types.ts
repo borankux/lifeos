@@ -21,4 +21,10 @@ export interface TaskRow {
   position: number;
   created_at: string;
   updated_at: string;
+  estimated_minutes: number | null;
+  estimated_start_date: string | null;
+  estimated_end_date: string | null;
+  actual_start_date: string | null;
+  actual_end_date: string | null;
+  actual_minutes: number | null;
 }

@@ -20,6 +20,13 @@ export interface Task {
   position: number;
   createdAt: string;
   updatedAt: string;
+  // Time tracking fields
+  estimatedMinutes?: number | null;
+  estimatedStartDate?: string | null;
+  estimatedEndDate?: string | null;
+  actualStartDate?: string | null;
+  actualEndDate?: string | null;
+  actualMinutes?: number | null;
 }
 
 export interface ApiResponse<T> {
@@ -67,4 +74,10 @@ export type UpdateTaskPayload = Partial<{
   tags: string[] | null;
   position: number;
   projectId: number;
+  estimatedMinutes: number | null;
+  estimatedStartDate: string | null;
+  estimatedEndDate: string | null;
+  actualStartDate: string | null;
+  actualEndDate: string | null;
+  actualMinutes: number | null;
 }>;

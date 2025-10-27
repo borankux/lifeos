@@ -30,6 +30,7 @@ export default function NotebookPage() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   
   const [newNotebookName, setNewNotebookName] = useState('');
   const [newNotebookIcon, setNewNotebookIcon] = useState('📓');
@@ -129,6 +130,7 @@ export default function NotebookPage() {
   async function handleSaveNote() {
     if (!selectedNote) return;
     
+    setSaveStatus('saving');
     try {
       const response = await window.api.notebook.updateNote({
         id: selectedNote.id,
@@ -139,6 +141,7 @@ export default function NotebookPage() {
       });
       
       if (response.ok) {
+        setSaveStatus('saved');
         setIsEditing(false);
         await loadNotes(selectedNotebook!.id);
         setSelectedNote(response.data);
@@ -149,9 +152,14 @@ export default function NotebookPage() {
           message: 'Your note has been saved.',
           duration: 2000
         });
+        
+        // Reset status after 2 seconds
+        setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } catch (error) {
       console.error('Failed to save note:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   }
 
@@ -188,7 +196,31 @@ export default function NotebookPage() {
   function handleEditNote() {
     if (!selectedNote) return;
     setIsEditing(true);
+    setSaveStatus('idle');
   }
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S to save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && isEditing) {
+        e.preventDefault();
+        handleSaveNote();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEditing, editTitle, editContent, selectedNote]);
+
+  // Track content changes
+  useEffect(() => {
+    if (isEditing && selectedNote && (editTitle !== selectedNote.title || editContent !== selectedNote.content)) {
+      if (saveStatus !== 'saving') {
+        setSaveStatus('idle');
+      }
+    }
+  }, [editTitle, editContent, isEditing, selectedNote]);
 
   return (
     <div style={{ height: '100%', overflow: 'hidden', padding: '1rem' }}>
@@ -302,7 +334,27 @@ export default function NotebookPage() {
                 </div>
                 
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '0.5rem', maxHeight: '3rem', overflow: 'hidden' }}>
-                  {note.content.substring(0, 100)}...
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <span>{children}</span>,
+                      strong: ({ children }) => <strong>{children}</strong>,
+                      em: ({ children }) => <em>{children}</em>,
+                      code: ({ children }) => <code style={{ 
+                        background: 'rgba(255, 255, 255, 0.05)', 
+                        padding: '0.125rem 0.25rem', 
+                        borderRadius: '3px' 
+                      }}>{children}</code>,
+                      h1: ({ children }) => <strong>{children}</strong>,
+                      h2: ({ children }) => <strong>{children}</strong>,
+                      h3: ({ children }) => <strong>{children}</strong>,
+                      ul: ({ children }) => <span>{children}</span>,
+                      ol: ({ children }) => <span>{children}</span>,
+                      li: ({ children }) => <span>• {children} </span>,
+                    }}
+                  >
+                    {note.content.substring(0, 150)}
+                  </ReactMarkdown>
+                  {note.content.length > 150 && '...'}
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
@@ -319,8 +371,8 @@ export default function NotebookPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden', padding: '1.5rem', background: 'var(--card-bg)', borderRadius: '12px', border: '2px solid var(--card-border)' }}>
           {selectedNote ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ flex: 1, marginRight: '1rem' }}>
                   {isEditing ? (
                     <input
                       value={editTitle}
@@ -343,26 +395,64 @@ export default function NotebookPage() {
                   )}
                 </div>
                 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {/* Save Status Indicator */}
+                  {isEditing && (
+                    <div style={{
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                      ...(saveStatus === 'saving' && {
+                        background: 'rgba(255, 152, 0, 0.15)',
+                        color: '#FF9800'
+                      }),
+                      ...(saveStatus === 'saved' && {
+                        background: 'rgba(3, 218, 198, 0.15)',
+                        color: '#03DAC6'
+                      }),
+                      ...(saveStatus === 'error' && {
+                        background: 'rgba(255, 82, 82, 0.15)',
+                        color: '#FF5252'
+                      }),
+                      ...(saveStatus === 'idle' && {
+                        background: 'rgba(158, 158, 158, 0.15)',
+                        color: '#9E9E9E'
+                      })
+                    }}>
+                      {saveStatus === 'saving' && '⏳ Saving...'}
+                      {saveStatus === 'saved' && '✓ Saved'}
+                      {saveStatus === 'error' && '⚠ Error'}
+                      {saveStatus === 'idle' && '✏️ Unsaved'}
+                    </div>
+                  )}
+                  
                   {isEditing ? (
                     <>
                       <button
                         onClick={handleSaveNote}
+                        disabled={saveStatus === 'saving'}
                         style={{
                           padding: '0.5rem 1rem',
                           borderRadius: '6px',
                           border: 'none',
-                          background: '#03DAC6',
+                          background: saveStatus === 'saving' ? 'rgba(3, 218, 198, 0.5)' : '#03DAC6',
                           color: '#121212',
-                          cursor: 'pointer',
+                          cursor: saveStatus === 'saving' ? 'not-allowed' : 'pointer',
                           fontWeight: 600,
                           fontSize: '0.875rem'
                         }}
                       >
-                        💾 Save
+                        💾 {saveStatus === 'saving' ? 'Saving...' : 'Save'}
                       </button>
                       <button
-                        onClick={() => setIsEditing(false)}
+                        onClick={() => {
+                          setIsEditing(false);
+                          setSaveStatus('idle');
+                        }}
                         style={{
                           padding: '0.5rem 1rem',
                           borderRadius: '6px',
@@ -424,7 +514,7 @@ export default function NotebookPage() {
                     <MDEditor
                       value={editContent}
                       onChange={(val) => setEditContent(val || '')}
-                      preview="edit"
+                      preview="live"
                       height="100%"
                       style={{
                         borderRadius: '8px',

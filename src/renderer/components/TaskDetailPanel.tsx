@@ -16,6 +16,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
   const [priority, setPriority] = useState(task.priority || 'Not Urgent & Not Important');
   const [dueDate, setDueDate] = useState(task.dueDate || '');
   const [tags, setTags] = useState((task.tags || []).join(', '));
+  const [estimatedMinutes, setEstimatedMinutes] = useState(task.estimatedMinutes || null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -28,7 +29,8 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
         description: description.trim() || null,
         priority: priority as any,
         dueDate: dueDate || null,
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        estimatedMinutes: estimatedMinutes
       });
       
       // Show success notification
@@ -237,21 +239,160 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
             Due Date
           </label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: '2px solid var(--card-border)',
-              background: 'var(--card-bg)',
-              color: 'var(--text-primary)',
-              fontSize: '0.875rem',
-              fontFamily: 'inherit'
-            }}
-          />
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              style={{
+                flex: 1,
+                minWidth: '200px',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--card-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit'
+              }}
+            />
+            {/* Quick date buttons */}
+            <div style={{ display: 'flex', gap: '0.375rem' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const today = new Date();
+                  setDueDate(today.toISOString().split('T')[0]);
+                }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  setDueDate(tomorrow.toISOString().split('T')[0]);
+                }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Tomorrow
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextWeek = new Date();
+                  nextWeek.setDate(nextWeek.getDate() + 7);
+                  setDueDate(nextWeek.toISOString().split('T')[0]);
+                }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Next Week
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Time Estimation */}
+        <div>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            Time Estimation
+          </label>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <input
+              type="number"
+              value={estimatedMinutes || ''}
+              onChange={(e) => setEstimatedMinutes(e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="Minutes"
+              min="0"
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '2px solid var(--card-border)',
+                background: 'var(--card-bg)',
+                color: 'var(--text-primary)',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit'
+              }}
+            />
+            {estimatedMinutes && (
+              <div style={{
+                padding: '0.75rem',
+                borderRadius: '8px',
+                background: 'rgba(3, 218, 198, 0.1)',
+                color: '#03DAC6',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                whiteSpace: 'nowrap'
+              }}>
+                {estimatedMinutes < 60 
+                  ? `${estimatedMinutes}min`
+                  : `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}min`
+                }
+              </div>
+            )}
+          </div>
+          
+          {/* Quick time buttons */}
+          <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+            {[
+              { label: '5min', minutes: 5 },
+              { label: '15min', minutes: 15 },
+              { label: '30min', minutes: 30 },
+              { label: '1h', minutes: 60 },
+              { label: '2h', minutes: 120 },
+              { label: 'Half day', minutes: 240 },
+              { label: 'Full day', minutes: 480 },
+            ].map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => setEstimatedMinutes(preset.minutes)}
+                style={{
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '6px',
+                  border: `2px solid ${estimatedMinutes === preset.minutes ? '#03DAC6' : 'var(--card-border)'}`,
+                  background: estimatedMinutes === preset.minutes ? 'rgba(3, 218, 198, 0.15)' : 'var(--card-bg)',
+                  color: estimatedMinutes === preset.minutes ? '#03DAC6' : 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Tags */}

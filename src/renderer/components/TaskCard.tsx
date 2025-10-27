@@ -127,14 +127,15 @@ function getPriorityLabel(priority: string): string {
   // Eisenhower Matrix - use full descriptive words
   const normalizedPriority = priority?.toLowerCase() || '';
   
-  if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
-    return 'Critical';  // Urgent & Important - Do First
-  } else if (normalizedPriority.includes('urgent') && (normalizedPriority.includes('not important') || normalizedPriority.includes('& not'))) {
-    return 'Delegate';  // Urgent & Not Important - Delegate
-  } else if (normalizedPriority.includes('important') && (normalizedPriority.includes('not urgent') || normalizedPriority.includes('& not'))) {
-    return 'Schedule';  // Not Urgent & Important - Plan/Schedule
-  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
+  // Check in order from most specific to least specific
+  if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
     return 'Low';       // Not Urgent & Not Important - Low priority
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
+    return 'Critical';  // Urgent & Important - Do First
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('not important')) {
+    return 'Delegate';  // Urgent & Not Important - Delegate
+  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('important')) {
+    return 'Schedule';  // Not Urgent & Important - Plan/Schedule
   }
   
   // Fallback for old priority values
@@ -145,14 +146,15 @@ function getPriorityColor(priority: string): string {
   // Eisenhower Matrix colors - normalize input
   const normalizedPriority = priority?.toLowerCase() || '';
   
-  if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
-    return '#FF5252';  // Red - Critical
-  } else if (normalizedPriority.includes('urgent') && (normalizedPriority.includes('not important') || normalizedPriority.includes('& not'))) {
-    return '#FF9800';  // Orange - Delegate
-  } else if (normalizedPriority.includes('important') && (normalizedPriority.includes('not urgent') || normalizedPriority.includes('& not'))) {
-    return '#03DAC6';  // Teal - Schedule
-  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
+  // Check in order from most specific to least specific
+  if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
     return '#9E9E9E';  // Gray - Low priority
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
+    return '#FF5252';  // Red - Critical
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('not important')) {
+    return '#FF9800';  // Orange - Delegate
+  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('important')) {
+    return '#03DAC6';  // Teal - Schedule
   }
   
   // Fallback for old values
@@ -163,14 +165,15 @@ function getPriorityBgColor(priority: string): string {
   // Eisenhower Matrix background colors - normalize input
   const normalizedPriority = priority?.toLowerCase() || '';
   
-  if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
-    return 'rgba(255, 82, 82, 0.15)';
-  } else if (normalizedPriority.includes('urgent') && (normalizedPriority.includes('not important') || normalizedPriority.includes('& not'))) {
-    return 'rgba(255, 152, 0, 0.15)';
-  } else if (normalizedPriority.includes('important') && (normalizedPriority.includes('not urgent') || normalizedPriority.includes('& not'))) {
-    return 'rgba(3, 218, 198, 0.15)';
-  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
+  // Check in order from most specific to least specific
+  if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('not important')) {
     return 'rgba(158, 158, 158, 0.15)';
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('important') && !normalizedPriority.includes('not')) {
+    return 'rgba(255, 82, 82, 0.15)';
+  } else if (normalizedPriority.includes('urgent') && normalizedPriority.includes('not important')) {
+    return 'rgba(255, 152, 0, 0.15)';
+  } else if (normalizedPriority.includes('not urgent') && normalizedPriority.includes('important')) {
+    return 'rgba(3, 218, 198, 0.15)';
   }
   
   // Fallback for old values
