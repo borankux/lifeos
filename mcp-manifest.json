@@ -1,0 +1,363 @@
+{
+  "manifest_version": 1,
+  "id": "lifeos.mcp",
+  "name": "LifeOS MCP",
+  "version": "1.0.0",
+  "description": "Comprehensive life management tools backed by the LifeOS Electron app's Express APIs. Access tasks, projects, habits, notebooks, notes, Q&A, activities, and more.",
+  "authors": [{ "name": "LifeOS Team" }],
+  "homepage_url": "https://lifeos.local",
+  "icons": [{ "src": "build/icon.png", "sizes": "512x512", "type": "image/png" }],
+  "server": {
+    "transport": "stdio",
+    "entry_point": {
+      "command": "node",
+      "args": ["server/index.js"]
+    },
+    "env": {
+      "LIFEOS_BASE_URL": "${user_config.base_url}",
+      "LIFEOS_API_KEY": "${secrets.api_key}"
+    }
+  },
+  "user_config": {
+    "base_url": {
+      "title": "LifeOS API Base URL",
+      "description": "Your Electron/Express endpoint, e.g. http://127.0.0.1:3000",
+      "type": "string",
+      "default": "http://127.0.0.1:3000"
+    }
+  },
+  "secrets": {
+    "api_key": {
+      "title": "API Key",
+      "description": "Optional bearer token for your Express API",
+      "type": "string",
+      "sensitive": true
+    }
+  },
+  "permissions": {
+    "network": ["http://127.0.0.1:3000", "http://localhost:3000"],
+    "spawn": false,
+    "filesystem": []
+  },
+  "resources": [
+    {
+      "uri": "lifeos://tasks",
+      "name": "Tasks",
+      "description": "Manage tasks and todo items",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "lifeos://projects",
+      "name": "Projects",
+      "description": "Manage projects and their tasks",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "lifeos://habits",
+      "name": "Habits",
+      "description": "Track and manage habits",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "lifeos://notebooks",
+      "name": "Notebooks",
+      "description": "Manage notebooks and notes",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "lifeos://questions",
+      "name": "Q&A",
+      "description": "Manage questions and answers",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "lifeos://activities",
+      "name": "Activities",
+      "description": "View and manage activities",
+      "mimeType": "application/json"
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_tasks",
+      "description": "Get all tasks or filter by status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed"],
+            "description": "Filter by task status"
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Filter by project ID"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of tasks to return",
+            "default": 50
+          }
+        }
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Task title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description"
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Associated project ID"
+          },
+          "due_date": {
+            "type": "string",
+            "description": "Due date (ISO 8601 format)"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Task priority"
+          }
+        },
+        "required": ["title"]
+      }
+    },
+    {
+      "name": "update_task",
+      "description": "Update an existing task",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Task ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Task title"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed"],
+            "description": "Task status"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          }
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "get_projects",
+      "description": "Get all projects",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of projects",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a new project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Project name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description"
+          },
+          "color": {
+            "type": "string",
+            "description": "Project color (hex or named color)"
+          }
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "get_habits",
+      "description": "Get all habits or filter by status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "active_only": {
+            "type": "boolean",
+            "description": "Only return active habits",
+            "default": true
+          }
+        }
+      }
+    },
+    {
+      "name": "create_habit",
+      "description": "Create a new habit",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Habit name"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly"],
+            "description": "Habit frequency"
+          },
+          "goal": {
+            "type": "integer",
+            "description": "Target count per period"
+          }
+        },
+        "required": ["name", "frequency"]
+      }
+    },
+    {
+      "name": "get_notebooks",
+      "description": "Get all notebooks",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of notebooks",
+            "default": 20
+          }
+        }
+      }
+    },
+    {
+      "name": "create_notebook",
+      "description": "Create a new notebook",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Notebook title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Notebook description"
+          }
+        },
+        "required": ["title"]
+      }
+    },
+    {
+      "name": "create_note",
+      "description": "Create a note in a notebook",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "notebook_id": {
+            "type": "string",
+            "description": "Notebook ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Note title"
+          },
+          "content": {
+            "type": "string",
+            "description": "Note content (markdown supported)"
+          }
+        },
+        "required": ["notebook_id", "title"]
+      }
+    },
+    {
+      "name": "get_questions",
+      "description": "Get all Q&A questions",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["unanswered", "in_progress", "answered"],
+            "description": "Filter by status"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of questions",
+            "default": 50
+          }
+        }
+      }
+    },
+    {
+      "name": "create_question",
+      "description": "Create a new Q&A question",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "Question text"
+          },
+          "category": {
+            "type": "string",
+            "description": "Question category"
+          }
+        },
+        "required": ["question"]
+      }
+    },
+    {
+      "name": "get_activities",
+      "description": "Get recent activities",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of activities",
+            "default": 50
+          },
+          "days": {
+            "type": "integer",
+            "description": "Number of past days to include",
+            "default": 7
+          }
+        }
+      }
+    },
+    {
+      "name": "get_stats",
+      "description": "Get LifeOS statistics and analytics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "enum": ["task_completion", "habit_consistency", "note_activity", "question_rate"],
+            "description": "Type of statistic to retrieve"
+          }
+        }
+      }
+    }
+  ],
+  "updates": {
+    "strategy": "none"
+  }
+}
