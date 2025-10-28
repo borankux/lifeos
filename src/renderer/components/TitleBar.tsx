@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { MCPStatusIndicator } from './MCPStatusIndicator';
 
 export function TitleBar() {
   const [isMax, setIsMax] = useState(false);
@@ -37,6 +38,9 @@ export function TitleBar() {
     <div className="titlebar">
       <div className="titlebar-left">
         <div style={{ fontWeight: 700 }}>LifeOS</div>
+      </div>
+      <div className="titlebar-center" style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <MCPStatusIndicator showLabel={true} size="small" />
       </div>
       <div className="titlebar-controls">
         <button onClick={onMinimize} className="titlebar-btn" aria-label="Minimize">

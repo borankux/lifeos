@@ -5,6 +5,7 @@ import { initDatabase } from '../database/init';
 const isDev = process.env.NODE_ENV !== 'production';
 
 let mainWindow: BrowserWindow | null = null;
+export let databaseAvailable = true;
 
 // Register IPC handlers after Electron is ready
 function registerIpcHandlers() {
@@ -20,6 +21,7 @@ function registerIpcHandlers() {
   require('./ipc/notebook');
   require('./ipc/database');
   require('./ipc/habits');
+  require('./ipc/mcp');
 }
 
 async function createMainWindow() {
@@ -70,11 +72,37 @@ app.whenReady().then(async () => {
     
     // Initialize database before creating window
     console.log('Initializing database...');
-    await initDatabase();
-    console.log('Database initialized successfully');
+    const dbInitResult = await initDatabase();
+    if (dbInitResult) {
+      console.log('Database initialized successfully');
+      databaseAvailable = true;
+    } else {
+      console.log('Database initialization failed - running in limited mode');
+      databaseAvailable = false;
+    }
     
     await createMainWindow();
     console.log('Main window created successfully');
+    
+    // Start MCP server if auto-start is enabled (after window is created)
+    // Skip in development if better-sqlite3 is not available (due to native module build issues)
+    if (!isDev) {
+      try {
+        const { startMCPServer } = require('./ipc/mcp');
+        const mcpRepo = require('../database/mcpRepo');
+        const mcpConfig = mcpRepo.getMCPConfig();
+        
+        if (mcpConfig && mcpConfig.enabled && mcpConfig.autoStart) {
+          console.log('Auto-starting MCP server...');
+          await startMCPServer();
+          console.log('MCP server auto-started successfully');
+        }
+      } catch (error) {
+        console.warn('Failed to auto-start MCP server:', error);
+      }
+    } else {
+      console.log('Skipping MCP auto-start in development mode');
+    }
   } catch (error) {
     console.error('Error during app initialization:', error);
     app.quit();

@@ -15,21 +15,27 @@ export function getDb(): Database {
   return db;
 }
 
-export async function initDatabase(): Promise<Database> {
+export async function initDatabase(): Promise<Database | null> {
   if (db) {
     return db;
   }
 
-  const userDataPath = path.join(appDataPath(), 'lifeos');
-  if (!fs.existsSync(userDataPath)) {
-    fs.mkdirSync(userDataPath, { recursive: true });
-  }
+  try {
+    const userDataPath = path.join(appDataPath(), 'lifeos');
+    if (!fs.existsSync(userDataPath)) {
+      fs.mkdirSync(userDataPath, { recursive: true });
+    }
 
-  const dbPath = path.join(userDataPath, 'lifeos.db');
-  db = new DatabaseConstructor(dbPath);
-  applyPragma(db);
-  runMigrations(db);
-  return db;
+    const dbPath = path.join(userDataPath, 'lifeos.db');
+    db = new DatabaseConstructor(dbPath);
+    applyPragma(db);
+    runMigrations(db);
+    return db;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    // Return null to allow app to continue without database in dev
+    return null;
+  }
 }
 
 function appDataPath(): string {
@@ -120,4 +126,24 @@ function runMigrations(database: Database) {
   
   // Apply Habits schema
   applyHabitsSchema(database);
+  
+  // Apply MCP configuration schema
+  database.exec(`CREATE TABLE IF NOT EXISTS mcp_config (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    port INTEGER NOT NULL DEFAULT 3000,
+    host TEXT NOT NULL DEFAULT 'localhost',
+    enabled INTEGER NOT NULL DEFAULT 1,
+    auto_start INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`);
+  
+  // Initialize MCP config with defaults if not exists
+  try {
+    database.prepare(`
+      INSERT INTO mcp_config (id, port, host, enabled, auto_start)
+      SELECT 1, 3000, 'localhost', 1, 1
+      WHERE NOT EXISTS (SELECT 1 FROM mcp_config WHERE id = 1)
+    `).run();
+  } catch (e) { /* Config already exists */ }
 }

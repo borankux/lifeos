@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { initDatabase } from '../database/init';
 import { tasksRouter } from './routes/tasks';
 import { projectsRouter } from './routes/projects';
 import { habitsRouter } from './routes/habits';
@@ -33,7 +34,7 @@ export function createMcpServer() {
   app.use(authMiddleware);
 
   // Health check
-  app.get('/health', (req, res) => {
+  app.get('/health', (req: any, res: any) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
@@ -55,6 +56,15 @@ export function createMcpServer() {
 }
 
 export async function startMcpServer() {
+  try {
+    // Initialize database first
+    await initDatabase();
+    logger.info('Database initialized for MCP server');
+  } catch (error) {
+    logger.error('Failed to initialize database for MCP server', error);
+    throw error;
+  }
+
   const app = createMcpServer();
 
   return new Promise<void>((resolve, reject) => {

@@ -4,6 +4,7 @@ import type { Project, ProjectsListResult } from '../common/types';
 import { NavBar } from './components/NavBar';
 import TitleBar from './components/TitleBar';
 import { Sidebar } from './components/Sidebar';
+import { NotificationModal } from './components/NotificationModal';
 import Dashboard from './pages/Dashboard';
 import KanbanPage from './pages/KanbanPage';
 import NotebookPage from './pages/NotebookPage';
@@ -150,6 +151,7 @@ function App() {
 
   return (
     <HashRouter>
+      <NotificationModal />
       <Routes>
         <Route path="/" element={<Layout 
           projects={projects} 

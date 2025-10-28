@@ -7,7 +7,10 @@ import type {
   CreateProjectInput,
   UpdateProjectPayload,
   CreateTaskInput,
-  UpdateTaskPayload
+  UpdateTaskPayload,
+  MCPConfig,
+  MCPServerStatus,
+  UpdateMCPConfigPayload
 } from '../common/types';
 import type { ActivityRow, CreateActivityInput } from '../database/activitiesRepo';
 import type { Settings } from '../services/settings';
@@ -164,6 +167,18 @@ const api = {
       ipcRenderer.invoke('habits:getLogs', { habitId, limit }) as Promise<ApiResponse<any[]>>,
     getStats: () =>
       ipcRenderer.invoke('habits:getStats') as Promise<ApiResponse<any>>
+  },
+  mcp: {
+    getConfig: () =>
+      ipcRenderer.invoke('mcp:get-config') as Promise<ApiResponse<MCPConfig>>,
+    updateConfig: (payload: UpdateMCPConfigPayload) =>
+      ipcRenderer.invoke('mcp:update-config', payload) as Promise<ApiResponse<MCPConfig>>,
+    startServer: () =>
+      ipcRenderer.invoke('mcp:start-server') as Promise<ApiResponse<{ running: boolean }>>,
+    stopServer: () =>
+      ipcRenderer.invoke('mcp:stop-server') as Promise<ApiResponse<{ running: boolean }>>,
+    getStatus: () =>
+      ipcRenderer.invoke('mcp:get-status') as Promise<ApiResponse<MCPServerStatus>>
   }
 };
 

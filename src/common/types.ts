@@ -81,3 +81,36 @@ export type UpdateTaskPayload = Partial<{
   actualEndDate: string | null;
   actualMinutes: number | null;
 }>;
+
+// MCP Server Configuration
+export interface MCPConfig {
+  id: number;
+  port: number;
+  host: string;
+  enabled: boolean;
+  autoStart: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateMCPConfigInput = {
+  port: number;
+  host: string;
+  enabled: boolean;
+  autoStart: boolean;
+};
+
+export type UpdateMCPConfigPayload = Partial<{
+  port: number;
+  host: string;
+  enabled: boolean;
+  autoStart: boolean;
+}>;
+
+export interface MCPServerStatus {
+  running: boolean;
+  port?: number;
+  host?: string;
+  uptime?: number;
+  error?: string;
+}
