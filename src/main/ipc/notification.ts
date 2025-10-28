@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow } from 'electron';
 
 interface NotificationOptions {
   type?: 'info' | 'success' | 'error' | 'warning';
@@ -10,8 +10,11 @@ interface NotificationOptions {
 export function registerNotificationHandlers() {
   ipcMain.handle('notification:show', async (event, options: NotificationOptions) => {
     try {
-      // The notification will be handled on the renderer side via the NotificationModal component
-      // Just acknowledge receipt
+      // Send notification to the renderer process that made the request
+      const senderWindow = BrowserWindow.fromWebContents(event.sender);
+      if (senderWindow && !senderWindow.isDestroyed()) {
+        senderWindow.webContents.send('notification:display', options);
+      }
       return { ok: true };
     } catch (error: any) {
       console.error('Failed to show notification:', error);

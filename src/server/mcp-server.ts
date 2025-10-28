@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import { initDatabase } from '../database/init';
 import { tasksRouter } from './routes/tasks';
 import { projectsRouter } from './routes/projects';
@@ -10,6 +11,7 @@ import { qaRouter } from './routes/qa';
 import { activitiesRouter } from './routes/activities';
 import { settingsRouter } from './routes/settings';
 import { statusRouter } from './routes/status';
+import { logsRouter } from './routes/logs';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/logging';
 import { authMiddleware } from './middleware/auth';
@@ -48,6 +50,7 @@ export function createMcpServer() {
   app.use('/api/activities', activitiesRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/status', statusRouter);
+  app.use('/api/logs', logsRouter);
 
   // Error handling
   app.use(errorHandler);

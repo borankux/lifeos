@@ -1,5 +1,5 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import DatabaseConstructor, { Database } from 'better-sqlite3';
 import { applyMetricsSchema } from './metricsSchema';
 import { applyQASchema } from './qaSchema';
@@ -39,8 +39,24 @@ export async function initDatabase(): Promise<Database | null> {
 }
 
 function appDataPath(): string {
-  const { app } = require('electron');
-  return app.getPath('userData');
+  // Try to use Electron first (main process context)
+  try {
+    const { app } = require('electron');
+    return app.getPath('userData');
+  } catch (e) {
+    // Fall back to standard user data directory for Node.js context
+    // This handles the case where MCP server runs as separate process
+    const os = require('os');
+    const platform = process.platform;
+    
+    if (platform === 'win32') {
+      return path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'lifeos');
+    } else if (platform === 'darwin') {
+      return path.join(os.homedir(), 'Library', 'Application Support', 'lifeos');
+    } else {
+      return path.join(os.homedir(), '.config', 'lifeos');
+    }
+  }
 }
 
 function applyPragma(database: Database) {
@@ -146,4 +162,16 @@ function runMigrations(database: Database) {
       WHERE NOT EXISTS (SELECT 1 FROM mcp_config WHERE id = 1)
     `).run();
   } catch (e) { /* Config already exists */ }
+  
+  // Apply server logs schema
+  database.exec(`CREATE TABLE IF NOT EXISTS server_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level TEXT NOT NULL DEFAULT 'info',
+    message TEXT NOT NULL,
+    data TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );`);
+  
+  database.exec('CREATE INDEX IF NOT EXISTS idx_server_logs_created_at ON server_logs(created_at DESC);');
+  database.exec('CREATE INDEX IF NOT EXISTS idx_server_logs_level ON server_logs(level);');
 }

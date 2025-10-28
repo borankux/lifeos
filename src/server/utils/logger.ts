@@ -20,28 +20,42 @@ function formatMessage(level: LogLevel, message: string, data?: any): string {
   return `[${timestamp}] ${levelStr} ${message}${dataStr}`;
 }
 
+function saveToDatabase(level: LogLevel, message: string, data?: any) {
+  try {
+    // Dynamically import to avoid circular dependencies
+    const { addServerLog } = require('../../database/serverLogsRepo');
+    addServerLog(level, message, data);
+  } catch (error) {
+    // Silently fail - don't want logger to crash the app
+  }
+}
+
 export const logger = {
   debug(message: string, data?: any) {
     if (shouldLog('debug')) {
       console.debug(formatMessage('debug', message, data));
+      saveToDatabase('debug', message, data);
     }
   },
 
   info(message: string, data?: any) {
     if (shouldLog('info')) {
       console.log(formatMessage('info', message, data));
+      saveToDatabase('info', message, data);
     }
   },
 
   warn(message: string, data?: any) {
     if (shouldLog('warn')) {
       console.warn(formatMessage('warn', message, data));
+      saveToDatabase('warn', message, data);
     }
   },
 
   error(message: string, data?: any) {
     if (shouldLog('error')) {
       console.error(formatMessage('error', message, data));
+      saveToDatabase('error', message, data);
     }
   }
 };

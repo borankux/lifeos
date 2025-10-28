@@ -66,7 +66,12 @@ const api = {
   },
   notification: {
     show: (options: { type?: 'info' | 'success' | 'error' | 'warning'; title: string; message: string; duration?: number }) =>
-      ipcRenderer.invoke('notification:show', options) as Promise<ApiResponse<boolean>>
+      ipcRenderer.invoke('notification:show', options) as Promise<{ ok: boolean }>,
+    onDisplay: (callback: (options: { type?: 'info' | 'success' | 'error' | 'warning'; title: string; message: string; duration?: number }) => void) => {
+      const listener = (event: any, options: any) => callback(options);
+      ipcRenderer.on('notification:display', listener);
+      return () => ipcRenderer.off('notification:display', listener);
+    }
   },
   metrics: {
     current: (args?: { userId?: string }) =>
@@ -179,6 +184,14 @@ const api = {
       ipcRenderer.invoke('mcp:stop-server') as Promise<ApiResponse<{ running: boolean }>>,
     getStatus: () =>
       ipcRenderer.invoke('mcp:get-status') as Promise<ApiResponse<MCPServerStatus>>
+  },
+  serverLogs: {
+    get: (options?: { limit?: number; offset?: number; level?: string; since?: string }) =>
+      ipcRenderer.invoke('server-logs:get', options) as Promise<ApiResponse<any[]>>,
+    getStats: () =>
+      ipcRenderer.invoke('server-logs:get-stats') as Promise<ApiResponse<any>>,
+    clearOld: (daysOld?: number) =>
+      ipcRenderer.invoke('server-logs:clear-old', daysOld) as Promise<ApiResponse<{ deleted: number }>>
   }
 };
 

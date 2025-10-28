@@ -51,6 +51,17 @@ export function NotificationModal() {
     notificationCallbacks.push(setNotificationsList);
     setNotificationsList(notifications);
 
+    // Listen for notifications from main process
+    if (window.api?.notification?.onDisplay) {
+      const unsubscribe = window.api.notification.onDisplay((options) => {
+        addNotification(options);
+      });
+      return () => {
+        notificationCallbacks = notificationCallbacks.filter(cb => cb !== setNotificationsList);
+        if (unsubscribe) unsubscribe();
+      };
+    }
+
     return () => {
       notificationCallbacks = notificationCallbacks.filter(cb => cb !== setNotificationsList);
     };

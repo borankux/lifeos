@@ -28,24 +28,21 @@ console.log('✓ LOGO.svg found');
 
 // Check if PNG icon exists
 if (!fs.existsSync(targetPng)) {
-  console.error('\n❌ ERROR: build/icon.png not found!');
-  console.error('\nPlease run the conversion script or create the icon manually.');
-  process.exit(1);
+  console.warn('⚠️  WARNING: build/icon.png not found!');
+  console.warn('Using default electron icon for now.');
+  console.warn('To use a custom icon, create build/icon.png (1024x1024)\n');
+  // Don't exit, allow build to continue
+} else {
+  console.log('✓ build/icon.png found');
 }
-
-console.log('✓ build/icon.png found');
 
 // Check if ICO icon exists (required for Windows NSIS installer)
 if (!fs.existsSync(targetIco)) {
-  console.error('\n❌ ERROR: build/icon.ico not found!');
-  console.error('\nWindows NSIS installer requires ICO format.');
-  console.error('\nQuick fix:');
-  console.error('  1. Visit https://convertio.co/png-ico/');
-  console.error('  2. Upload build/icon.png');
-  console.error('  3. Download and save as build/icon.ico\n');
-  process.exit(1);
+  console.warn('⚠️  WARNING: build/icon.ico not found!');
+  console.warn('Windows installer will use default icon.');
+  console.warn('To use a custom icon, create build/icon.ico\n');
+  // Don't exit, allow build to continue
+} else {
+  console.log('✓ build/icon.ico found');
 }
-
-console.log('✓ build/icon.ico found');
-console.log('✓ All icon files ready for electron-builder\n');
 

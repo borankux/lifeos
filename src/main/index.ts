@@ -22,6 +22,7 @@ function registerIpcHandlers() {
   require('./ipc/database');
   require('./ipc/habits');
   require('./ipc/mcp');
+  require('./ipc/serverLogs');
 }
 
 async function createMainWindow() {

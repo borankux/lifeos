@@ -35,7 +35,7 @@ export async function startMCPServer(): Promise<boolean> {
         MCP_SERVER_HOST: config.host,
         NODE_ENV: process.env.NODE_ENV || 'development'
       },
-      stdio: 'inherit'
+      stdio: 'pipe' // Pipe stdout/stderr instead of inheriting console
     });
 
     mcpServerProcess.on('error', (error: Error) => {
