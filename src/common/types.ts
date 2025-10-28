@@ -89,6 +89,10 @@ export interface MCPConfig {
   host: string;
   enabled: boolean;
   autoStart: boolean;
+  protocolVersion?: string;
+  sessionTimeout?: number;
+  heartbeatInterval?: number;
+  maxSessions?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,6 +102,10 @@ export type CreateMCPConfigInput = {
   host: string;
   enabled: boolean;
   autoStart: boolean;
+  protocolVersion?: string;
+  sessionTimeout?: number;
+  heartbeatInterval?: number;
+  maxSessions?: number;
 };
 
 export type UpdateMCPConfigPayload = Partial<{
@@ -105,6 +113,10 @@ export type UpdateMCPConfigPayload = Partial<{
   host: string;
   enabled: boolean;
   autoStart: boolean;
+  protocolVersion: string;
+  sessionTimeout: number;
+  heartbeatInterval: number;
+  maxSessions: number;
 }>;
 
 export interface MCPServerStatus {

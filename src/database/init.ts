@@ -150,6 +150,10 @@ function runMigrations(database: Database) {
     host TEXT NOT NULL DEFAULT 'localhost',
     enabled INTEGER NOT NULL DEFAULT 1,
     auto_start INTEGER NOT NULL DEFAULT 1,
+    protocol_version TEXT NOT NULL DEFAULT '2025-06-18',
+    session_timeout INTEGER NOT NULL DEFAULT 3600,
+    heartbeat_interval INTEGER NOT NULL DEFAULT 30,
+    max_sessions INTEGER NOT NULL DEFAULT 100,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`);
@@ -157,11 +161,25 @@ function runMigrations(database: Database) {
   // Initialize MCP config with defaults if not exists
   try {
     database.prepare(`
-      INSERT INTO mcp_config (id, port, host, enabled, auto_start)
-      SELECT 1, 3000, 'localhost', 1, 1
+      INSERT INTO mcp_config (id, port, host, enabled, auto_start, protocol_version, session_timeout, heartbeat_interval, max_sessions)
+      SELECT 1, 3000, 'localhost', 1, 1, '2025-06-18', 3600, 30, 100
       WHERE NOT EXISTS (SELECT 1 FROM mcp_config WHERE id = 1)
     `).run();
   } catch (e) { /* Config already exists */ }
+  
+  // Add new fields to existing mcp_config table
+  try {
+    database.exec('ALTER TABLE mcp_config ADD COLUMN protocol_version TEXT NOT NULL DEFAULT "2025-06-18";');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE mcp_config ADD COLUMN session_timeout INTEGER NOT NULL DEFAULT 3600;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE mcp_config ADD COLUMN heartbeat_interval INTEGER NOT NULL DEFAULT 30;');
+  } catch (e) { /* Column already exists */ }
+  try {
+    database.exec('ALTER TABLE mcp_config ADD COLUMN max_sessions INTEGER NOT NULL DEFAULT 100;');
+  } catch (e) { /* Column already exists */ }
   
   // Apply server logs schema
   database.exec(`CREATE TABLE IF NOT EXISTS server_logs (

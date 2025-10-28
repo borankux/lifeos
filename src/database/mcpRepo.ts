@@ -10,6 +10,10 @@ export function getMCPConfig(): MCPConfig {
       host,
       enabled,
       auto_start as autoStart,
+      protocol_version as protocolVersion,
+      session_timeout as sessionTimeout,
+      heartbeat_interval as heartbeatInterval,
+      max_sessions as maxSessions,
       created_at as createdAt,
       updated_at as updatedAt
     FROM mcp_config
@@ -41,6 +45,22 @@ export function updateMCPConfig(payload: UpdateMCPConfigPayload): MCPConfig {
   if (payload.autoStart !== undefined) {
     updates.push('auto_start = ?');
     params.push(payload.autoStart ? 1 : 0);
+  }
+  if (payload.protocolVersion !== undefined) {
+    updates.push('protocol_version = ?');
+    params.push(payload.protocolVersion);
+  }
+  if (payload.sessionTimeout !== undefined) {
+    updates.push('session_timeout = ?');
+    params.push(payload.sessionTimeout);
+  }
+  if (payload.heartbeatInterval !== undefined) {
+    updates.push('heartbeat_interval = ?');
+    params.push(payload.heartbeatInterval);
+  }
+  if (payload.maxSessions !== undefined) {
+    updates.push('max_sessions = ?');
+    params.push(payload.maxSessions);
   }
 
   updates.push('updated_at = CURRENT_TIMESTAMP');
