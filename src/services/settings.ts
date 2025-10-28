@@ -6,6 +6,8 @@ export interface Settings {
   theme?: 'light' | 'dark';
   hideOldCompletedTasks?: boolean;
   weatherLocation?: string;
+  weatherLatitude?: number;
+  weatherLongitude?: number;
 }
 
 const SETTINGS_FILENAME = 'settings.json';

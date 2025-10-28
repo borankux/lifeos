@@ -41,10 +41,11 @@ export function createMcpSecurity(config: McpSecurityConfig = {}) {
 
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      // 1. Protocol Version Validation
+      // 1. Protocol Version Validation (Relaxed)
+      const protocolVersion = req.get('MCP-Protocol-Version');
+      
       if (enforceProtocolVersion) {
-        const protocolVersion = req.get('MCP-Protocol-Version');
-        
+        // Strict mode: require and validate version
         if (!protocolVersion) {
           return res.status(400).json({
             error: {
@@ -67,6 +68,19 @@ export function createMcpSecurity(config: McpSecurityConfig = {}) {
 
         // Echo protocol version in response
         res.setHeader('MCP-Protocol-Version', protocolVersion);
+      } else {
+        // Relaxed mode: version is optional
+        if (protocolVersion) {
+          // If provided and supported, echo it back
+          if (SUPPORTED_PROTOCOL_VERSIONS.includes(protocolVersion)) {
+            res.setHeader('MCP-Protocol-Version', protocolVersion);
+          }
+          // If provided but not supported, log warning but continue
+          else {
+            console.warn(`[MCP Security] Unsupported protocol version: ${protocolVersion}, continuing anyway (relaxed mode)`);
+          }
+        }
+        // If not provided, continue without version header (compatible with mcp-remote)
       }
 
       // 2. Origin Validation (DNS Rebinding Defense)

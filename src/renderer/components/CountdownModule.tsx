@@ -1,5 +1,104 @@
 import React, { useState, useEffect } from 'react';
 
+interface CountdownCardProps {
+  label: string;
+  icon: string;
+  remaining: number;
+  percentage: number;
+  color: string;
+  unit: string;
+}
+
+function CountdownCard({ label, icon, remaining, percentage, color, unit }: CountdownCardProps) {
+  const formatRemaining = (value: number, unitType: string): string => {
+    if (unitType === 'hours') {
+      const hours = Math.floor(value);
+      return `${hours}h`;
+    }
+    return `${Math.floor(value)}d`;
+  };
+
+  const radius = 26;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '0.375rem',
+      minWidth: '68px'
+    }}>
+      {/* Circular Progress */}
+      <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+        <svg width="60" height="60" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Background circle */}
+          <circle
+            cx="30"
+            cy="30"
+            r={radius}
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.1)"
+            strokeWidth="4"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="30"
+            cy="30"
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="4"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{
+              transition: 'stroke-dashoffset 0.5s ease',
+              filter: `drop-shadow(0 0 4px ${color}40)`
+            }}
+          />
+        </svg>
+        {/* Center content */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.125rem'
+        }}>
+          {icon}
+        </div>
+      </div>
+      
+      {/* Label */}
+      <div style={{
+        fontSize: '0.65rem',
+        color: 'var(--text-secondary)',
+        textAlign: 'center',
+        fontWeight: 600
+      }}>
+        {label}
+      </div>
+      
+      {/* Remaining time */}
+      <div style={{
+        fontSize: '0.75rem',
+        color,
+        textAlign: 'center',
+        fontWeight: 700,
+        lineHeight: 1
+      }}>
+        {formatRemaining(remaining, unit)}
+      </div>
+    </div>
+  );
+}
+
 interface CountdownInfo {
   label: string;
   icon: string;
@@ -114,94 +213,18 @@ export function CountdownModule() {
   };
 
   return (
-    <div style={{
-      borderRadius: '12px',
-      background: 'var(--card-bg)',
-      border: '2px solid var(--card-border)',
-      padding: '1rem',
-      height: 'fit-content'
-    }}>
-      <h3 style={{ 
-        margin: '0 0 0.75rem 0', 
-        fontSize: '0.875rem', 
-        fontWeight: 600, 
-        color: 'var(--text-primary)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem'
-      }}>
-        ⏳ 时间倒计时
-      </h3>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {countdowns.map((countdown, index) => (
-          <div
-            key={index}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '6px',
-              background: 'var(--hover-bg)',
-              border: '1px solid var(--card-border)',
-            }}
-          >
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '0.25rem'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.375rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)'
-              }}>
-                <span style={{ fontSize: '0.875rem' }}>{countdown.icon}</span>
-                <span>{countdown.label}</span>
-              </div>
-              <div style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 700,
-                color: countdown.color
-              }}>
-                剩 {formatRemaining(countdown.remaining, getUnit(countdown.label))}
-              </div>
-            </div>
-            
-            {/* Progress bar */}
-            <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '2px',
-              overflow: 'hidden',
-              position: 'relative'
-            }}>
-              <div
-                style={{
-                  width: `${countdown.percentage}%`,
-                  height: '100%',
-                  background: `linear-gradient(90deg, ${countdown.color}dd, ${countdown.color})`,
-                  borderRadius: '2px',
-                  transition: 'width 0.5s ease',
-                  boxShadow: `0 0 6px ${countdown.color}40`
-                }}
-              />
-            </div>
-            
-            <div style={{
-              marginTop: '0.125rem',
-              fontSize: '0.65rem',
-              color: 'var(--text-tertiary)',
-              textAlign: 'right'
-            }}>
-              已过 {countdown.percentage.toFixed(1)}%
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <>
+      {countdowns.map((countdown, index) => (
+        <CountdownCard
+          key={index}
+          label={countdown.label}
+          icon={countdown.icon}
+          remaining={countdown.remaining}
+          percentage={countdown.percentage}
+          color={countdown.color}
+          unit={getUnit(countdown.label)}
+        />
+      ))}
+    </>
   );
 }

@@ -112,71 +112,85 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
   const hasNoProjects = projects.length === 0;
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <div
-        onClick={() => setOpen((v) => !v)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1.5rem',
-          padding: '0.75rem 1.5rem',
-          borderRadius: '12px',
-          background: hasNoProjects 
-            ? 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 193, 7, 0.15) 100%)'
-            : 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
-          border: hasNoProjects 
-            ? '1px solid rgba(255, 152, 0, 0.3)'
-            : '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#fff',
-          minWidth: '220px',
-          cursor: 'pointer',
-          backdropFilter: 'blur(10px)',
-          flex: 1,
-        }}
-      >
-        {hasNoProjects ? (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-              <div style={{ fontSize: '1.2rem' }}>➕</div>
-              <div style={{ fontWeight: 600 }}>Create First Project</div>
+    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+      {hasNoProjects ? (
+        // Show compact prompt when no projects exist
+        <div
+          onClick={() => setOpen(!open)}
+          style={{
+            padding: '0.5rem 1rem',
+            background: 'rgba(3, 218, 198, 0.1)',
+            border: '1px solid rgba(3, 218, 198, 0.3)',
+            borderRadius: 8,
+            color: '#03DAC6',
+            textAlign: 'center',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(3, 218, 198, 0.15)';
+            e.currentTarget.style.borderColor = 'rgba(3, 218, 198, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(3, 218, 198, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(3, 218, 198, 0.3)';
+          }}
+        >
+          ➕ Click to Create Project
+        </div>
+      ) : (
+        // Show normal project switcher when projects exist
+        <>
+        <div
+          onClick={() => setOpen((v) => !v)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.5rem',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            color: '#fff',
+            minWidth: '220px',
+            cursor: 'pointer',
+            backdropFilter: 'blur(10px)',
+            flex: 1,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+            <div style={{ width: 12, height: 12, borderRadius: 6, background: active?.color ?? '#888', flexShrink: 0 }} />
+            <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {active ? active.name : 'No projects'}
             </div>
-            <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
-          </>
-        ) : (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 6, background: active?.color ?? '#888', flexShrink: 0 }} />
-              <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {active ? active.name : 'No projects'}
+          </div>
+          {/* Project Statistics */}
+          {active && projectStats[active.id] && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.75rem',
+              fontSize: '0.75rem',
+              color: 'var(--text-secondary)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span>📋</span>
+                <span>{projectStats[active.id].taskCount}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ color: '#03DAC6' }}>✓</span>
+                <span>{projectStats[active.id].completedCount}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ color: '#FF9800' }}>🔄</span>
+                <span>{projectStats[active.id].inProgressCount}</span>
               </div>
             </div>
-            {/* Project Statistics */}
-            {active && projectStats[active.id] && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.75rem',
-                fontSize: '0.75rem',
-                color: 'var(--text-secondary)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span>📋</span>
-                  <span>{projectStats[active.id].taskCount}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span style={{ color: '#03DAC6' }}>✓</span>
-                  <span>{projectStats[active.id].completedCount}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span style={{ color: '#FF9800' }}>🔄</span>
-                  <span>{projectStats[active.id].inProgressCount}</span>
-                </div>
-              </div>
-            )}
-            <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
-          </>
-        )}
-      </div>
+          )}
+          <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
+        </div>
 
       {open && (
         <div
@@ -185,26 +199,26 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
             position: 'absolute',
             top: 'calc(100% + 8px)',
             left: 0,
-            width: 320,
+            width: hasNoProjects ? '100%' : 320,
             background: 'rgba(18,18,18,0.98)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 10,
             boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
             zIndex: 9999,
-            padding: '0.5rem'
+            padding: hasNoProjects ? '1rem' : '0.5rem'
           }}
         >
           {hasNoProjects ? (
             <div style={{ 
-              padding: '1rem', 
               color: 'var(--text-secondary)',
               textAlign: 'center',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
+              marginBottom: '1rem'
             }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎯</div>
-              <div style={{ marginBottom: '0.5rem', fontWeight: 600 }}>No Projects Yet</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
-                Create your first project to get started!
+              <div style={{ marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>Create Your First Project</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                Projects help you organize tasks and goals
               </div>
             </div>
           ) : (
@@ -305,36 +319,44 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
             </div>
           )}
 
-          <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem', marginTop: hasNoProjects ? '0' : '0.5rem' }}>
             <input
-              placeholder="Create project"
+              placeholder={hasNoProjects ? "Project name..." : "Create project"}
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
+              autoFocus={hasNoProjects}
               style={{
                 flex: 1,
                 padding: '0.5rem 0.75rem',
                 borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.06)',
-                background: 'transparent',
-                color: '#fff'
+                border: hasNoProjects ? '2px solid rgba(3, 218, 198, 0.3)' : '1px solid rgba(255,255,255,0.06)',
+                background: hasNoProjects ? 'rgba(3, 218, 198, 0.05)' : 'transparent',
+                color: '#fff',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s ease'
               }}
             />
             <button
               type="submit"
               disabled={creating || !newProjectName.trim()}
               style={{
-                padding: '0.5rem 0.75rem',
+                padding: '0.5rem 1rem',
                 borderRadius: 8,
-                background: creating ? 'rgba(255,255,255,0.06)' : '#03DAC6',
+                background: creating ? 'rgba(255,255,255,0.06)' : (newProjectName.trim() ? '#03DAC6' : 'rgba(3, 218, 198, 0.3)'),
                 border: 'none',
                 cursor: creating || !newProjectName.trim() ? 'not-allowed' : 'pointer',
-                fontWeight: 700
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                transition: 'all 0.2s ease',
+                color: newProjectName.trim() ? '#000' : '#666'
               }}
             >
-              {creating ? '...' : 'Add'}
+              {creating ? '...' : (hasNoProjects ? 'Create' : 'Add')}
             </button>
           </form>
         </div>
+      )}
+      </>
       )}
       
       {/* Delete Confirmation Dialog */}

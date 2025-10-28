@@ -5,9 +5,9 @@ import { ActivityChart } from '../components/ActivityChart';
 import { DashboardStats } from '../components/DashboardStats';
 import { MetricsGauges } from '../components/MetricsGauges';
 import { QAStats } from '../components/QAStats';
-import { CountdownModule } from '../components/CountdownModule';
 import { NotebookStatsModule } from '../components/NotebookStatsModule';
 import { HabitStatsModule } from '../components/HabitStatsModule';
+import { DailySummary } from '../components/DailySummary';
 import type { Task, Project } from '../../common/types';
 
 export default function Dashboard() {
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({
     totalTasks: 0,
+    backlogTasks: 0,
     todayTasks: 0,
     completedTasks: 0,
     inProgressTasks: 0,
@@ -64,21 +65,28 @@ export default function Dashboard() {
           
           // Calculate statistics
           const today = new Date().toISOString().split('T')[0];
-          const todayTasksCount = allTasksData.filter(t => 
+          
+          // Exclude backlog from active task counts
+          const activeTasks = allTasksData.filter(t => t.status !== 'Backlog');
+          const backlogTasks = allTasksData.filter(t => t.status === 'Backlog').length;
+          
+          const todayTasksCount = activeTasks.filter(t => 
             t.createdAt?.startsWith(today)
           ).length;
           
           const completed = allTasksData.filter(t => t.status === 'Completed').length;
           const inProgress = allTasksData.filter(t => t.status === 'In Progress').length;
-          const completionRate = allTasksData.length > 0 
-            ? Math.round((completed / allTasksData.length) * 100) 
+          
+          // Completion rate excludes backlog
+          const completionRate = activeTasks.length > 0 
+            ? Math.round((completed / activeTasks.length) * 100) 
             : 0;
           
           // Today's completion rate
-          const todayCompleted = allTasksData.filter(t => 
+          const todayCompleted = activeTasks.filter(t => 
             t.status === 'Completed' && t.updatedAt?.startsWith(today)
           ).length;
-          const todayTotal = allTasksData.filter(t => 
+          const todayTotal = activeTasks.filter(t => 
             t.createdAt?.startsWith(today) || t.updatedAt?.startsWith(today)
           ).length;
           const todayCompletionRate = todayTotal > 0 
@@ -106,7 +114,8 @@ export default function Dashboard() {
           const averageTasksPerDay = Math.round((recentCompletedTasks / 30) * 10) / 10;
           
           setStats({
-            totalTasks: allTasksData.length,
+            totalTasks: activeTasks.length,
+            backlogTasks,
             todayTasks: todayTasksCount,
             completedTasks: completed,
             inProgressTasks: inProgress,
@@ -135,11 +144,12 @@ export default function Dashboard() {
         weeklyProductivity={stats.weeklyProductivity}
         averageTasksPerDay={stats.averageTasksPerDay}
         totalTasks={stats.totalTasks}
+        backlogTasks={stats.backlogTasks}
         inProgressTasks={stats.inProgressTasks}
         completedTasks={stats.completedTasks}
       />
 
-      {/* Activity Heatmap - Full Width at Top */}
+      {/* Activity Heatmap - Full Width at Top - Only Completed Tasks */}
       <div style={{ 
         marginTop: '1rem',
         width: '100%', 
@@ -148,14 +158,19 @@ export default function Dashboard() {
         border: '2px solid var(--card-border)',
         overflow: 'hidden'
       }}>
-        <ActivityHeatmap activities={allActivities} weeksToShow={52} />
+        <ActivityHeatmap 
+          activities={allActivities.filter(a => 
+            a.type === 'task' && a.message.toLowerCase().includes('completed')
+          )} 
+          weeksToShow={52} 
+        />
       </div>
 
       <section style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Row 1: Life Metrics (50%) + Countdown (50%) */}
+        {/* Row 1: Life Metrics (50%) + Daily Summary (50%) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <MetricsGauges />
-          <CountdownModule />
+          <DailySummary />
         </div>
 
         {/* Row 2: Q&A Stats (33%) + Notebook Stats (33%) + Habit Stats (33%) */}

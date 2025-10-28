@@ -21,9 +21,9 @@
   "user_config": {
     "base_url": {
       "title": "LifeOS API Base URL",
-      "description": "Your Electron/Express endpoint, e.g. http://127.0.0.1:3000",
+      "description": "Your Electron/Express endpoint, e.g. http://127.0.0.1:3033",
       "type": "string",
-      "default": "http://127.0.0.1:3000"
+      "default": "http://127.0.0.1:3033"
     }
   },
   "secrets": {
@@ -35,7 +35,7 @@
     }
   },
   "permissions": {
-    "network": ["http://127.0.0.1:3000", "http://localhost:3000"],
+    "network": ["http://127.0.0.1:3033", "http://localhost:3033"],
     "spawn": false,
     "filesystem": []
   },

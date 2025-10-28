@@ -86,23 +86,32 @@ app.whenReady().then(async () => {
     console.log('Main window created successfully');
     
     // Start MCP server if auto-start is enabled (after window is created)
-    // Skip in development if better-sqlite3 is not available (due to native module build issues)
-    if (!isDev) {
-      try {
-        const { startMCPServer } = require('./ipc/mcp');
-        const mcpRepo = require('../database/mcpRepo');
-        const mcpConfig = mcpRepo.getMCPConfig();
-        
-        if (mcpConfig && mcpConfig.enabled && mcpConfig.autoStart) {
-          console.log('Auto-starting MCP server...');
-          await startMCPServer();
-          console.log('MCP server auto-started successfully');
+    try {
+      const { startMCPServer, getMCPServerStatus } = require('./ipc/mcp');
+      const mcpRepo = require('../database/mcpRepo');
+      const mcpConfig = mcpRepo.getMCPConfig();
+      
+      console.log('MCP Config:', mcpConfig);
+      
+      if (mcpConfig && mcpConfig.enabled && mcpConfig.autoStart) {
+        console.log('Auto-starting MCP server...');
+        const started = await startMCPServer();
+        if (started) {
+          const status = getMCPServerStatus();
+          console.log('✓ MCP server auto-started successfully');
+          console.log('  Status:', status);
+        } else {
+          const status = getMCPServerStatus();
+          console.error('✗ MCP server auto-start failed');
+          console.error('  Error:', status.error || 'Unknown error');
         }
-      } catch (error) {
-        console.warn('Failed to auto-start MCP server:', error);
+      } else {
+        console.log('MCP auto-start disabled or server not enabled');
+        console.log('  enabled:', mcpConfig?.enabled, 'autoStart:', mcpConfig?.autoStart);
       }
-    } else {
-      console.log('Skipping MCP auto-start in development mode');
+    } catch (error) {
+      console.error('✗ Failed to auto-start MCP server:', error);
+      console.error('  Stack:', error instanceof Error ? error.stack : 'No stack');
     }
   } catch (error) {
     console.error('Error during app initialization:', error);

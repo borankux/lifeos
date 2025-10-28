@@ -43,12 +43,7 @@ function Gauge({ value, label, color, subtitle }: GaugeProps) {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '1rem',
-      borderRadius: '12px',
-      background: 'var(--card-bg)',
-      border: '2px solid var(--card-border)',
-      position: 'relative',
-      overflow: 'hidden'
+      position: 'relative'
     }}>
       {/* Background glow effect */}
       <div style={{

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { fetchWeatherApi } from 'openmeteo';
+import { LOCATION_PRESETS, findLocationByName, getDefaultLocation } from '../data/locations';
 
 // Simple lunar calendar converter (basic implementation)
 class LunarCalendar {
@@ -64,14 +66,34 @@ export function DateInfoModule() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState('上海·徐汇');
+  const [latitude, setLatitude] = useState(31.1880);
+  const [longitude, setLongitude] = useState(121.4380);
 
-  // Load weather location from settings
+  // Load weather location and coordinates from settings
   useEffect(() => {
     const loadLocation = async () => {
       try {
         const response = await window.api.settings.get();
-        if (response.ok && response.data?.weatherLocation) {
-          setLocation(response.data.weatherLocation);
+        if (response.ok && response.data) {
+          if (response.data.weatherLocation) {
+            setLocation(response.data.weatherLocation);
+            
+            // Try to find preset location
+            const preset = findLocationByName(response.data.weatherLocation);
+            if (preset) {
+              setLatitude(preset.latitude);
+              setLongitude(preset.longitude);
+            } else if (response.data.weatherLatitude && response.data.weatherLongitude) {
+              setLatitude(response.data.weatherLatitude);
+              setLongitude(response.data.weatherLongitude);
+            }
+          } else {
+            // Use default Shanghai location
+            const defaultLoc = getDefaultLocation();
+            setLocation(defaultLoc.name);
+            setLatitude(defaultLoc.latitude);
+            setLongitude(defaultLoc.longitude);
+          }
         }
       } catch (error) {
         console.error('Failed to load weather location:', error);
@@ -88,43 +110,100 @@ export function DateInfoModule() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch weather data (simulated - you can integrate real API)
+  // Fetch weather data from Open-Meteo API (FREE, no API key needed!)
   useEffect(() => {
-    // Simulated weather data based on location setting
-    // In production, integrate with weather API like OpenWeatherMap or QWeather
     const fetchWeather = async () => {
+      if (!latitude || !longitude) {
+        setWeather({
+          temperature: '--°C',
+          condition: 'Location not set',
+          humidity: '--',
+          wind: '--',
+          forecast: []
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Simulated data with forecast
-        const today = new Date();
-        const forecast = [];
+        setLoading(true);
         
-        // Generate 3 days of forecast
-        for (let i = 1; i <= 3; i++) {
-          const forecastDate = new Date(today);
-          forecastDate.setDate(today.getDate() + i);
-          
-          // Simple forecast simulation
-          const temps = ['19°C', '20°C', '18°C', '21°C', '17°C'];
-          const conditions = ['多云', '晴', '小雨', '阴', '晴转多云'];
+        // Fetch weather data from Open-Meteo (FREE!)
+        const params = {
+          latitude,
+          longitude,
+          current: ['temperature_2m', 'relative_humidity_2m', 'weather_code', 'wind_speed_10m'],
+          daily: ['weather_code', 'temperature_2m_max', 'temperature_2m_min'],
+          timezone: 'auto'
+        };
+        
+        const responses = await fetchWeatherApi('https://api.open-meteo.com/v1/forecast', params);
+        const response = responses[0];
+        
+        // Current weather
+        const current = response.current()!;
+        const currentTemp = current.variables(0)!.value(); // temperature_2m
+        const currentHumidity = current.variables(1)!.value(); // relative_humidity_2m
+        const currentWeatherCode = current.variables(2)!.value(); // weather_code
+        const currentWindSpeed = current.variables(3)!.value(); // wind_speed_10m
+        
+        // Daily forecast
+        const daily = response.daily()!;
+        const dailyWeatherCode = daily.variables(0)!.valuesArray()!; // weather_code
+        const dailyTempMax = daily.variables(1)!.valuesArray()!; // temperature_2m_max
+        const dailyTempMin = daily.variables(2)!.valuesArray()!; // temperature_2m_min
+        
+        // Map WMO weather codes to Chinese conditions
+        const mapWeatherCode = (code: number): string => {
+          if (code === 0) return '晴';
+          if (code === 1) return '少云';
+          if (code === 2) return '多云';
+          if (code === 3) return '阴';
+          if (code >= 45 && code <= 48) return '雾';
+          if (code >= 51 && code <= 55) return '小雨';
+          if (code >= 56 && code <= 57) return '冻雨';
+          if (code >= 61 && code <= 65) return '雨';
+          if (code >= 66 && code <= 67) return '冻雨';
+          if (code >= 71 && code <= 75) return '雪';
+          if (code >= 80 && code <= 82) return '阵雨';
+          if (code >= 85 && code <= 86) return '阵雪';
+          if (code >= 95 && code <= 99) return '雷雨';
+          return '晴';
+        };
+        
+        // Process forecast (next 3 days)
+        const forecast: ForecastData[] = [];
+        const today = new Date();
+        
+        for (let i = 1; i <= 3 && i < dailyWeatherCode.length; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() + i);
           
           forecast.push({
-            date: forecastDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-            dayOfWeek: forecastDate.toLocaleDateString('zh-CN', { weekday: 'short' }),
-            temperature: temps[i % temps.length],
-            condition: conditions[i % conditions.length]
+            date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+            dayOfWeek: date.toLocaleDateString('zh-CN', { weekday: 'short' }),
+            temperature: `${Math.round(dailyTempMax[i])}°C`,
+            condition: mapWeatherCode(dailyWeatherCode[i])
           });
         }
         
         setWeather({
-          temperature: '18°C',
-          condition: '多云',
-          humidity: '65%',
-          wind: '东北风 3级',
+          temperature: `${Math.round(currentTemp)}°C`,
+          condition: mapWeatherCode(currentWeatherCode),
+          humidity: `${Math.round(currentHumidity)}%`,
+          wind: `${currentWindSpeed.toFixed(1)}m/s`,
           forecast
         });
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch weather:', error);
+        setWeather({
+          temperature: '--°C',
+          condition: 'Failed to load',
+          humidity: '--',
+          wind: '--',
+          forecast: []
+        });
         setLoading(false);
       }
     };
@@ -133,7 +212,7 @@ export function DateInfoModule() {
     // Refresh weather every 30 minutes
     const weatherInterval = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => clearInterval(weatherInterval);
-  }, [location]);
+  }, [latitude, longitude]);
 
   // Calculate various date information
   const gregorianDate = currentTime.toLocaleDateString('zh-CN', {
@@ -197,13 +276,8 @@ export function DateInfoModule() {
       display: 'flex',
       alignItems: 'center',
       gap: '1.5rem',
-      padding: '0.75rem 1.5rem',
-      borderRadius: '12px',
-      background: 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      backdropFilter: 'blur(10px)',
       flex: 1,
-      minWidth: 0,
+      minWidth: 0
     }}>
       {/* Main Date & Time Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -256,17 +330,25 @@ export function DateInfoModule() {
       }} />
 
       {/* Week Info Section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '0.125rem',
+        minWidth: '110px',
+        flexShrink: 0
+      }}>
         <div style={{ 
-          fontSize: '0.75rem', 
+          fontSize: '0.7rem', 
           color: 'var(--text-secondary)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.125rem'
+          gap: '0.125rem',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden'
         }}>
-          <div>📅 第{weekNumber}周 (年)</div>
-          <div>💼 第{fiscalWeek}周 (财年)</div>
-          <div>🗓️ 第{dayOfYear}天</div>
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>📅 第{weekNumber}周 (年)</div>
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>💼 第{fiscalWeek}周 (财年)</div>
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>🗓️ 第{dayOfYear}天</div>
         </div>
       </div>
 
@@ -278,7 +360,13 @@ export function DateInfoModule() {
       }} />
 
       {/* Weather Section */}
-      <div style={{ display: 'flex', gap: '0.75rem', minWidth: '220px' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.75rem', 
+        minWidth: '220px',
+        flexShrink: 0,
+        overflow: 'hidden'
+      }}>
         {/* Today's Weather Card */}
         <div style={{ 
           display: 'flex',

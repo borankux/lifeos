@@ -25,6 +25,8 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [hideOldCompleted, setHideOldCompleted] = useState(false);
   const [showArchivedView, setShowArchivedView] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [creating, setCreating] = useState(false);
 
   // Load settings
   useEffect(() => {
@@ -186,6 +188,19 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
     }
   }
 
+  async function handleCreateProjectSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const trimmed = newProjectName.trim();
+    if (!trimmed || !onCreateProject) return;
+    try {
+      setCreating(true);
+      await onCreateProject(trimmed);
+      setNewProjectName('');
+    } finally {
+      setCreating(false);
+    }
+  }
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -298,7 +313,14 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
   }
 
   return (
-    <div style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+    <div style={{ 
+      userSelect: 'none', 
+      WebkitUserSelect: 'none',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
       {!activeProjectId ? (
         // No project - show create prompt
         <div style={{
@@ -333,21 +355,73 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
           }}>
             Create your first project to start managing tasks with the Kanban board.
           </p>
+          
+          {/* Project Creation Form */}
           <div style={{
-            padding: '1rem 2rem',
+            width: '100%',
+            maxWidth: '400px',
+            padding: '2rem',
             borderRadius: '12px',
-            background: 'rgba(3, 218, 198, 0.1)',
+            background: 'rgba(18,18,18,0.98)',
             border: '2px solid rgba(3, 218, 198, 0.3)',
-            color: '#03DAC6',
-            fontSize: '0.875rem'
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4)'
           }}>
-            💡 Click the project dropdown above to create a new project
+            <div style={{ 
+              textAlign: 'center',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎯</div>
+              <div style={{ fontWeight: 600, fontSize: '1.125rem', color: '#fff', marginBottom: '0.25rem' }}>Create Your First Project</div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>Projects help you organize tasks and goals</div>
+            </div>
+            
+            <form onSubmit={handleCreateProjectSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <input
+                placeholder="Enter project name..."
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                autoFocus
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: 8,
+                  border: '2px solid rgba(3, 218, 198, 0.3)',
+                  background: 'rgba(3, 218, 198, 0.05)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(3, 218, 198, 0.6)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(3, 218, 198, 0.3)';
+                }}
+              />
+              <button
+                type="submit"
+                disabled={creating || !newProjectName.trim()}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: 8,
+                  background: creating ? 'rgba(255,255,255,0.06)' : (newProjectName.trim() ? '#03DAC6' : 'rgba(3, 218, 198, 0.3)'),
+                  border: 'none',
+                  cursor: creating || !newProjectName.trim() ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  transition: 'all 0.2s ease',
+                  color: newProjectName.trim() ? '#000' : '#666'
+                }}
+              >
+                {creating ? 'Creating...' : '➕ Create Project'}
+              </button>
+            </form>
           </div>
         </div>
       ) : (
         // Project exists - show kanban board
         <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '0 1 auto' }}>
           <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>Kanban</h2>
           {projects && onSelectProject && onCreateProject && onDeleteProject && (
@@ -412,10 +486,15 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
             padding: '1.5rem', 
             borderRadius: '12px', 
             background: 'var(--card-bg)', 
-            border: '2px solid var(--card-border)'
+            border: '2px solid var(--card-border)',
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
           }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600 }}>Archived Completed Tasks</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '600px', overflowY: 'auto' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600, flexShrink: 0 }}>Archived Completed Tasks</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minHeight: 0, overflowY: 'auto' }}>
               {tasks.filter(t => t.status === 'Completed' && !filteredTasks.includes(t)).length === 0 ? (
                 <div style={{ 
                   textAlign: 'center', 
@@ -471,7 +550,14 @@ export default function KanbanPage({ activeProjectId, projects, onSelectProject,
           </div>
         ) : (
           /* Normal Kanban View */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(4, 1fr)', 
+            gap: '1rem', 
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden'
+          }}>
             {(['Backlog', 'To-Do', 'In Progress', 'Completed'] as KanbanStatus[]).map((status) => (
               <KanbanColumn 
                 key={status} 

@@ -127,9 +127,9 @@ export function ActivityHeatmap({ activities, weeksToShow = 52 }: ActivityHeatma
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📊</span>
-            Activity Calendar
+            Completed Tasks Calendar
           </h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>({activities.length} total activities)</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>({activities.length} completed tasks)</span>
         </div>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
           {weeksToShow} weeks • Scroll to view history

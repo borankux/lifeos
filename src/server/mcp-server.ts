@@ -18,10 +18,10 @@ import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/logging';
 import { authMiddleware } from './middleware/auth';
 import { rateLimiter } from './middleware/rateLimiter';
-import { strictMcpSecurity, legacySecurity } from './middleware/mcpSecurity';
+import { strictMcpSecurity, relaxedMcpSecurity, legacySecurity } from './middleware/mcpSecurity';
 import { logger } from './utils/logger';
 
-const PORT = process.env.MCP_SERVER_PORT || 3000;
+const PORT = process.env.MCP_SERVER_PORT || 3033;
 const HOST = process.env.MCP_SERVER_HOST || 'localhost';
 
 export function createMcpServer() {
@@ -69,9 +69,11 @@ export function createMcpServer() {
     });
   });
 
-  // MCP Protocol Endpoints (with MCP security middleware)
-  app.use('/mcp', strictMcpSecurity, mcpRouter);
-  app.use('/sse', legacySecurity, sseRouter);
+  // MCP Protocol Endpoints (with relaxed MCP security for compatibility)
+  // Relaxed mode: accepts requests with or without MCP-Protocol-Version header
+  // This enables compatibility with both native SSE clients and mcp-remote bridge
+  app.use('/mcp', relaxedMcpSecurity, mcpRouter);
+  app.use('/sse', relaxedMcpSecurity, sseRouter);
   app.use('/messages', legacySecurity, messagesRouter);
 
   // REST API Routes (with auth middleware)
@@ -94,11 +96,10 @@ export function createMcpServer() {
 
 export async function startMcpServer() {
   try {
-    // Initialize database first
-    await initDatabase();
-    logger.info('Database initialized for MCP server');
+    // Database is already initialized by main process, skip re-initialization
+    logger.info('Using existing database connection for MCP server');
   } catch (error) {
-    logger.error('Failed to initialize database for MCP server', error);
+    logger.error('Database check failed for MCP server', error);
     throw error;
   }
 
@@ -106,9 +107,22 @@ export async function startMcpServer() {
 
   return new Promise<void>((resolve, reject) => {
     try {
-      app.listen(Number(PORT), HOST, () => {
-        logger.info(`MCP Server started on http://${HOST}:${PORT}`);
+      const server = app.listen(Number(PORT), HOST, () => {
+        logger.info(`✓ MCP Server listening on http://${HOST}:${PORT}`);
+        logger.info(`  - Health: http://${HOST}:${PORT}/health`);
+        logger.info(`  - API: http://${HOST}:${PORT}/api`);
+        logger.info(`  - MCP: http://${HOST}:${PORT}/mcp`);
         resolve();
+      });
+      
+      server.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          logger.error(`✗ Port ${PORT} is already in use`);
+          reject(new Error(`Port ${PORT} is already in use. Please choose a different port in Settings.`));
+        } else {
+          logger.error('MCP Server error:', error);
+          reject(error);
+        }
       });
     } catch (error) {
       logger.error('Failed to start MCP server', error);

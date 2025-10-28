@@ -146,7 +146,7 @@ function runMigrations(database: Database) {
   // Apply MCP configuration schema
   database.exec(`CREATE TABLE IF NOT EXISTS mcp_config (
     id INTEGER PRIMARY KEY CHECK (id = 1),
-    port INTEGER NOT NULL DEFAULT 3000,
+    port INTEGER NOT NULL DEFAULT 3033,
     host TEXT NOT NULL DEFAULT 'localhost',
     enabled INTEGER NOT NULL DEFAULT 1,
     auto_start INTEGER NOT NULL DEFAULT 1,
@@ -162,7 +162,7 @@ function runMigrations(database: Database) {
   try {
     database.prepare(`
       INSERT INTO mcp_config (id, port, host, enabled, auto_start, protocol_version, session_timeout, heartbeat_interval, max_sessions)
-      SELECT 1, 3000, 'localhost', 1, 1, '2025-06-18', 3600, 30, 100
+      SELECT 1, 3033, 'localhost', 1, 1, '2025-06-18', 3600, 30, 100
       WHERE NOT EXISTS (SELECT 1 FROM mcp_config WHERE id = 1)
     `).run();
   } catch (e) { /* Config already exists */ }

@@ -32,9 +32,18 @@ export interface ToolResult {
 
 /**
  * Get list of available tool names from manifest
+ * Includes MCP protocol methods
  */
 export function getAvailableTools(): string[] {
-  return manifestData.tools.map(tool => tool.name);
+  const toolNames = manifestData.tools.map(tool => tool.name);
+  // Add MCP protocol methods
+  return [
+    'initialize',
+    'ping',
+    'tools/list',
+    'resources/list',
+    ...toolNames
+  ];
 }
 
 /**
@@ -53,7 +62,18 @@ export async function executeToolHandler(
   params: ToolInput,
 ): Promise<ToolResult> {
   try {
+    // Handle MCP protocol methods
     switch (methodName) {
+      case 'initialize':
+        return await handleInitialize(params);
+      case 'ping':
+        return await handlePing(params);
+      case 'tools/list':
+        return await handleToolsList(params);
+      case 'resources/list':
+        return await handleResourcesList(params);
+      
+      // Application tool methods
       case 'get_tasks':
         return await handleGetTasks(params);
       case 'create_task':
@@ -139,6 +159,68 @@ function createMockReqRes(params: ToolInput, pathParams?: Record<string, string>
 // ============================================================================
 // Tool Handler Implementations
 // ============================================================================
+
+/**
+ * MCP Protocol: initialize - Server initialization
+ */
+async function handleInitialize(params: ToolInput): Promise<ToolResult> {
+  return {
+    success: true,
+    data: {
+      protocolVersion: '2025-06-18',
+      serverInfo: {
+        name: 'LifeOS MCP Server',
+        version: '1.0.0',
+      },
+      capabilities: {
+        tools: true,
+        resources: true,
+        prompts: false,
+      },
+    },
+  };
+}
+
+/**
+ * MCP Protocol: ping - Health check
+ */
+async function handlePing(params: ToolInput): Promise<ToolResult> {
+  return {
+    success: true,
+    data: {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * MCP Protocol: tools/list - List available tools
+ */
+async function handleToolsList(params: ToolInput): Promise<ToolResult> {
+  return {
+    success: true,
+    data: {
+      tools: manifestData.tools.map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+      })),
+    },
+  };
+}
+
+/**
+ * MCP Protocol: resources/list - List available resources
+ */
+async function handleResourcesList(params: ToolInput): Promise<ToolResult> {
+  return {
+    success: true,
+    data: {
+      resources: manifestData.resources || [],
+    },
+  };
+}
 
 /**
  * get_tasks - Get all tasks or filter by status

@@ -4,6 +4,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { MCPStatusIndicator } from '../components/MCPStatusIndicator';
 import { MCPConfigModal } from '../components/MCPConfigModal';
 import { ServerLogsViewer } from '../components/ServerLogsViewer';
+import { LOCATION_PRESETS } from '../data/locations';
 
 type SettingsTab = 'appearance' | 'mcp-server' | 'database';
 
@@ -27,10 +28,13 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false);
   const [weatherLocation, setWeatherLocation] = useState('');
   const [editingLocation, setEditingLocation] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     loadMcpConfig();
-    loadWeatherLocation();
+    loadWeatherSettings();
   }, []);
 
   const loadMcpConfig = async () => {
@@ -45,28 +49,37 @@ export default function SettingsPage() {
     }
   };
 
-  const loadWeatherLocation = async () => {
+  const loadWeatherSettings = async () => {
     try {
       const response = await window.api.settings.get();
       if (response.ok && response.data) {
         setWeatherLocation(response.data.weatherLocation || '上海·徐汇');
       }
     } catch (error) {
-      console.error('Failed to load weather location:', error);
+      console.error('Failed to load weather settings:', error);
       setWeatherLocation('上海·徐汇');
     }
   };
 
   const handleSaveWeatherLocation = async () => {
-    if (!weatherLocation.trim()) return;
+    if (!weatherLocation) return;
     try {
-      const response = await window.api.settings.update({ weatherLocation: weatherLocation.trim() });
+      // Find the selected location's coordinates
+      const selectedLocation = LOCATION_PRESETS.find(loc => loc.name === weatherLocation);
+      const updateData: any = { weatherLocation };
+      
+      if (selectedLocation) {
+        updateData.weatherLatitude = selectedLocation.latitude;
+        updateData.weatherLongitude = selectedLocation.longitude;
+      }
+      
+      const response = await window.api.settings.update(updateData);
       if (response.ok) {
         setEditingLocation(false);
         await window.api.notification.show({
           type: 'success',
           title: 'Location Updated',
-          message: `Weather location set to ${weatherLocation.trim()}`
+          message: `Weather location set to ${weatherLocation}`
         });
       }
     } catch (error) {
@@ -78,19 +91,42 @@ export default function SettingsPage() {
     setMcpLoading(true);
     setMcpError(null);
     try {
+      console.log('UI: Requesting MCP server start...');
       const response = await window.api.mcp.startServer();
+      console.log('UI: MCP start response:', response);
+      
       if (response.ok) {
         await window.api.notification.show({
           type: 'success',
           title: 'MCP Server Started',
-          message: `Running on port ${mcpConfig?.port || 3000}`
+          message: `Running on http://${mcpConfig?.host || 'localhost'}:${mcpConfig?.port || 3000}`
         });
+        // Reload status
+        setTimeout(async () => {
+          const statusRes = await window.api.mcp.getStatus();
+          if (statusRes.ok) {
+            console.log('Server status:', statusRes.data);
+          }
+        }, 1000);
       } else {
-        throw new Error(response.error || 'Failed');
+        const errorMsg = response.error || 'Failed to start server';
+        console.error('UI: Failed to start MCP server:', errorMsg);
+        setMcpError(errorMsg);
+        await window.api.notification.show({
+          type: 'error',
+          title: 'MCP Server Error',
+          message: errorMsg
+        });
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to start';
+      console.error('UI: Exception starting MCP server:', errorMsg, error);
       setMcpError(errorMsg);
+      await window.api.notification.show({
+        type: 'error',
+        title: 'MCP Server Error',
+        message: errorMsg
+      });
     } finally {
       setMcpLoading(false);
     }
@@ -153,6 +189,37 @@ export default function SettingsPage() {
       setMcpError('Failed');
     } finally {
       setMcpLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    if (!mcpConfig) return;
+    setTestingConnection(true);
+    setConnectionTestResult(null);
+    try {
+      const url = `http://${mcpConfig.host}:${mcpConfig.port}/health`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setConnectionTestResult({ 
+          success: true, 
+          message: `Connected! Server uptime: ${data.uptime || 0}s` 
+        });
+      } else {
+        setConnectionTestResult({ 
+          success: false, 
+          message: `Connection failed: HTTP ${response.status}` 
+        });
+      }
+    } catch (error) {
+      setConnectionTestResult({ 
+        success: false, 
+        message: `Cannot reach server. Make sure it's started.` 
+      });
+    } finally {
+      setTestingConnection(false);
+      // Clear result after 5 seconds
+      setTimeout(() => setConnectionTestResult(null), 5000);
     }
   };
 
@@ -317,61 +384,72 @@ export default function SettingsPage() {
                       transition: 'all 0.2s ease'
                     }}
                   >
-                    ✏️ Edit
+                    ✏️ Change
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <input
-                    type="text"
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <select
                     value={weatherLocation}
                     onChange={(e) => setWeatherLocation(e.target.value)}
-                    placeholder="e.g., 上海·徐汇, New York, Tokyo"
                     style={{
-                      flex: 1,
+                      width: '100%',
                       padding: '0.75rem 1rem',
                       borderRadius: '8px',
                       border: '1px solid var(--card-border)',
                       background: 'var(--bg)',
                       color: 'var(--text-primary)',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                  <button
-                    onClick={handleSaveWeatherLocation}
-                    disabled={!weatherLocation.trim()}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      borderRadius: '8px',
-                      border: '1px solid #10B981',
-                      background: weatherLocation.trim() ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                      color: '#10B981',
-                      cursor: weatherLocation.trim() ? 'pointer' : 'not-allowed',
-                      fontWeight: 600,
                       fontSize: '0.875rem',
-                      transition: 'all 0.2s ease',
-                      opacity: weatherLocation.trim() ? 1 : 0.5
+                      cursor: 'pointer'
                     }}
                   >
-                    ✓ Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingLocation(false);
-                      loadWeatherLocation();
-                    }}
-                    style={{
-                      padding: '0.75rem 1rem',
-                      borderRadius: '8px',
-                      border: '1px solid var(--card-border)',
-                      background: 'transparent',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    ✕
-                  </button>
+                    {LOCATION_PRESETS.map((loc) => (
+                      <option key={loc.name} value={loc.name}>
+                        {loc.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      onClick={handleSaveWeatherLocation}
+                      disabled={!weatherLocation}
+                      style={{
+                        flex: 1,
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        border: '1px solid #10B981',
+                        background: weatherLocation ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                        color: '#10B981',
+                        cursor: weatherLocation ? 'pointer' : 'not-allowed',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        transition: 'all 0.2s ease',
+                        opacity: weatherLocation ? 1 : 0.5
+                      }}
+                    >
+                      ✓ Save Location
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingLocation(false);
+                        loadWeatherSettings();
+                      }}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--card-border)',
+                        background: 'transparent',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', padding: '0.5rem' }}>
+                    🌍 Select from {LOCATION_PRESETS.length} cities worldwide. Weather data powered by Open-Meteo (free, no API key needed!)
+                  </div>
                 </div>
               )}
             </div>
@@ -577,39 +655,79 @@ export default function SettingsPage() {
                     paddingTop: '1rem',
                     borderTop: '1px solid var(--card-border)'
                   }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>Connection Info</div>
-                    <div style={{ 
-                      background: 'var(--bg)', 
-                      border: '1px solid var(--card-border)', 
-                      borderRadius: '6px',
-                      padding: '0.75rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <code style={{ 
-                        fontSize: '0.75rem', 
-                        fontFamily: 'monospace',
-                        color: '#03DAC6'
-                      }}>
-                        http://{mcpConfig?.host || 'localhost'}:{mcpConfig?.port || 3000}/mcp
-                      </code>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>Connection Info</div>
+                        <div style={{ 
+                          background: 'var(--bg)', 
+                          border: '1px solid var(--card-border)', 
+                          borderRadius: '6px',
+                          padding: '0.75rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <code style={{ 
+                            fontSize: '0.75rem', 
+                            fontFamily: 'monospace',
+                            color: '#03DAC6'
+                          }}>
+                            http://{mcpConfig?.host || 'localhost'}:{mcpConfig?.port || 3000}
+                          </code>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                       <button 
-                        onClick={copyMcpConfig} 
+                        onClick={() => setShowConfigModal(true)}
                         style={{
-                          padding: '0.25rem 0.75rem', 
-                          borderRadius: '4px', 
+                          padding: '0.75rem', 
+                          borderRadius: '6px', 
                           border: '1px solid #03DAC6',
                           color: '#03DAC6', 
                           cursor: 'pointer',
-                          background: 'transparent',
-                          fontSize: '0.7rem',
-                          fontWeight: 600
+                          background: 'rgba(3, 218, 198, 0.1)',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s ease'
                         }}
                       >
-                        {copied ? '✓ Copied' : '📋 Copy Config'}
+                        🔧 Configure Client
+                      </button>
+                      <button 
+                        onClick={handleTestConnection}
+                        disabled={testingConnection}
+                        style={{
+                          padding: '0.75rem', 
+                          borderRadius: '6px', 
+                          border: '1px solid #6200EE',
+                          color: '#6200EE', 
+                          cursor: testingConnection ? 'not-allowed' : 'pointer',
+                          background: 'rgba(98, 0, 238, 0.1)',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s ease',
+                          opacity: testingConnection ? 0.5 : 1
+                        }}
+                      >
+                        {testingConnection ? '⏳ Testing...' : '🔌 Test Connection'}
                       </button>
                     </div>
+                    
+                    {connectionTestResult && (
+                      <div style={{
+                        padding: '0.75rem',
+                        borderRadius: '6px',
+                        background: connectionTestResult.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        border: `1px solid ${connectionTestResult.success ? '#10B981' : '#EF4444'}`,
+                        color: connectionTestResult.success ? '#10B981' : '#EF4444',
+                        fontSize: '0.8rem',
+                        fontWeight: 600
+                      }}>
+                        {connectionTestResult.success ? '✓' : '✗'} {connectionTestResult.message}
+                      </div>
+                    )}
                   </div>
 
                   {mcpError && (
@@ -681,7 +799,7 @@ export default function SettingsPage() {
         onCancel={() => setShowPurgeDialog(false)}
       />
       
-      <MCPConfigModal isOpen={false} config={mcpConfig} onClose={() => {}} />
+      <MCPConfigModal isOpen={showConfigModal} config={mcpConfig} onClose={() => setShowConfigModal(false)} />
     </div>
   );
 }

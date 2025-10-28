@@ -121,6 +121,7 @@ interface DashboardStatsProps {
   weeklyProductivity: number;
   averageTasksPerDay: number;
   totalTasks: number;
+  backlogTasks: number;
   inProgressTasks: number;
   completedTasks: number;
 }
@@ -131,6 +132,7 @@ export function DashboardStats({
   weeklyProductivity,
   averageTasksPerDay,
   totalTasks,
+  backlogTasks,
   inProgressTasks,
   completedTasks,
 }: DashboardStatsProps) {
@@ -149,7 +151,7 @@ export function DashboardStats({
         value={totalTasks}
         icon="📋"
         color="#03DAC6"
-        subtitle="All tasks"
+        subtitle={backlogTasks > 0 ? `+${backlogTasks} in backlog` : "All active tasks"}
       />
 
       {/* Total Completed */}

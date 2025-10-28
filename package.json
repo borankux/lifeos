@@ -42,23 +42,33 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
     "mac": {
       "icon": "build/icon.png",
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "linux": {
       "icon": "build/icon.png",
       "category": "Office",
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -76,12 +86,13 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "framer-motion": "^11.1.7",
+    "openmeteo": "^1.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^8.0.7",
     "react-router-dom": "^6.14.1",
-    "remark-gfm": "^3.0.1",
     "rehype-raw": "^6.1.1",
+    "remark-gfm": "^3.0.1",
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
   },

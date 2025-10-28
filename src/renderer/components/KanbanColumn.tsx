@@ -38,14 +38,16 @@ export function KanbanColumn({ status, tasks, onCreateTask, onTaskDoubleClick }:
         background: isOver ? 'rgba(98,0,238,0.15)' : 'var(--card-bg)',
         borderRadius: '16px',
         padding: '1rem',
-        minHeight: '360px',
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
-        border: '2px solid var(--card-border)'
+        border: '2px solid var(--card-border)',
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden'
       }}
     >
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <h2 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{status}</h2>
         <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>{tasks.length}</span>
       </header>
@@ -54,7 +56,8 @@ export function KanbanColumn({ status, tasks, onCreateTask, onTaskDoubleClick }:
           display: 'flex', 
           flexDirection: 'column', 
           gap: '0.75rem', 
-          flex: 1, 
+          flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
           overflowX: 'hidden',
           paddingRight: '0.25rem'
@@ -67,7 +70,7 @@ export function KanbanColumn({ status, tasks, onCreateTask, onTaskDoubleClick }:
       
       {/* Show task creation form in Backlog column */}
       {status === 'Backlog' && (
-        <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem' }}>
+        <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
           <input
             placeholder="Add task to backlog"
             value={draftTitle}

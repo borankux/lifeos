@@ -69,57 +69,63 @@ const logHabitSchema = z.object({
 function calculateStreak(logs: { logged_date: string }[]): { current: number; longest: number } {
   if (logs.length === 0) return { current: 0, longest: 0 };
 
-  const sortedDates = logs
-    .map(log => log.logged_date)
-    .sort()
-    .reverse();
+  // Remove duplicates and sort in descending order (newest first)
+  const uniqueDates = [...new Set(logs.map(log => log.logged_date))];
+  const sortedDates = uniqueDates.sort().reverse();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split('T')[0];
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
 
   let currentStreak = 0;
   let longestStreak = 0;
   let tempStreak = 0;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  let expectedDate = new Date(sortedDates[0]);
-  
-  const todayStr = today.toISOString().split('T')[0];
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-  
+  // Calculate current streak (must start from today or yesterday)
   if (sortedDates[0] === todayStr || sortedDates[0] === yesterdayStr) {
     currentStreak = 1;
-    tempStreak = 1;
     
+    // Count consecutive days going backwards from the most recent log
     for (let i = 1; i < sortedDates.length; i++) {
-      expectedDate.setDate(expectedDate.getDate() - 1);
-      const expectedStr = expectedDate.toISOString().split('T')[0];
+      const prevDate = new Date(sortedDates[i - 1]);
+      const currDate = new Date(sortedDates[i]);
       
-      if (sortedDates[i] === expectedStr) {
+      // Calculate days difference
+      const daysDiff = Math.round((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff === 1) {
         currentStreak++;
-        tempStreak++;
       } else {
-        break;
+        break; // Streak broken
       }
     }
   }
 
+  // Calculate longest streak (check all consecutive sequences)
   tempStreak = 1;
   for (let i = 0; i < sortedDates.length - 1; i++) {
-    const current = new Date(sortedDates[i]);
-    const next = new Date(sortedDates[i + 1]);
-    const diff = Math.floor((current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24));
+    const prevDate = new Date(sortedDates[i]);
+    const currDate = new Date(sortedDates[i + 1]);
     
-    if (diff === 1) {
+    const daysDiff = Math.round((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 1) {
       tempStreak++;
-    } else {
       longestStreak = Math.max(longestStreak, tempStreak);
+    } else {
       tempStreak = 1;
     }
   }
+  
+  // Don't forget the last streak
   longestStreak = Math.max(longestStreak, tempStreak);
+  
+  // Longest streak must be at least as long as current streak
+  longestStreak = Math.max(longestStreak, currentStreak);
 
   return { current: currentStreak, longest: longestStreak };
 }
