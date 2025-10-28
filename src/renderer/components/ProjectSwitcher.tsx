@@ -109,6 +109,7 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
   }
 
   const active = projects.find((p) => p.id === activeProjectId) ?? projects[0];
+  const hasNoProjects = projects.length === 0;
 
   return (
     <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
@@ -120,8 +121,12 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
           gap: '1.5rem',
           padding: '0.75rem 1.5rem',
           borderRadius: '12px',
-          background: 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: hasNoProjects 
+            ? 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 193, 7, 0.15) 100%)'
+            : 'linear-gradient(135deg, rgba(98, 0, 238, 0.1) 0%, rgba(3, 218, 198, 0.1) 100%)',
+          border: hasNoProjects 
+            ? '1px solid rgba(255, 152, 0, 0.3)'
+            : '1px solid rgba(255, 255, 255, 0.1)',
           color: '#fff',
           minWidth: '220px',
           cursor: 'pointer',
@@ -129,36 +134,48 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
           flex: 1,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-          <div style={{ width: 12, height: 12, borderRadius: 6, background: active?.color ?? '#888', flexShrink: 0 }} />
-          <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {active ? active.name : 'No projects'}
-          </div>
-        </div>
-        {/* Project Statistics */}
-        {active && projectStats[active.id] && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.75rem',
-            fontSize: '0.75rem',
-            color: 'var(--text-secondary)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span>📋</span>
-              <span>{projectStats[active.id].taskCount}</span>
+        {hasNoProjects ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+              <div style={{ fontSize: '1.2rem' }}>➕</div>
+              <div style={{ fontWeight: 600 }}>Create First Project</div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ color: '#03DAC6' }}>✓</span>
-              <span>{projectStats[active.id].completedCount}</span>
+            <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+              <div style={{ width: 12, height: 12, borderRadius: 6, background: active?.color ?? '#888', flexShrink: 0 }} />
+              <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {active ? active.name : 'No projects'}
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ color: '#FF9800' }}>🔄</span>
-              <span>{projectStats[active.id].inProgressCount}</span>
-            </div>
-          </div>
+            {/* Project Statistics */}
+            {active && projectStats[active.id] && (
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.75rem',
+                fontSize: '0.75rem',
+                color: 'var(--text-secondary)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span>📋</span>
+                  <span>{projectStats[active.id].taskCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ color: '#03DAC6' }}>✓</span>
+                  <span>{projectStats[active.id].completedCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ color: '#FF9800' }}>🔄</span>
+                  <span>{projectStats[active.id].inProgressCount}</span>
+                </div>
+              </div>
+            )}
+            <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
+          </>
         )}
-        <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: '1rem' }}>▾</div>
       </div>
 
       {open && (
@@ -177,11 +194,22 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
             padding: '0.5rem'
           }}
         >
-          <div style={{ maxHeight: 220, overflow: 'auto' }}>
-            {projects.length === 0 ? (
-              <div style={{ padding: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>No projects yet</div>
-            ) : (
-              projects.map((project) => (
+          {hasNoProjects ? (
+            <div style={{ 
+              padding: '1rem', 
+              color: 'var(--text-secondary)',
+              textAlign: 'center',
+              fontSize: '0.875rem'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎯</div>
+              <div style={{ marginBottom: '0.5rem', fontWeight: 600 }}>No Projects Yet</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
+                Create your first project to get started!
+              </div>
+            </div>
+          ) : (
+            <div style={{ maxHeight: 220, overflow: 'auto' }}>
+              {projects.map((project) => (
                 <div
                   key={project.id}
                   style={{
@@ -273,9 +301,9 @@ export function ProjectSwitcher({ projects, activeProjectId, onSelect, onCreate,
                     🗑️
                   </button>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
             <input

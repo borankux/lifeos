@@ -25,9 +25,12 @@ export default function SettingsPage() {
   const [showPortInput, setShowPortInput] = useState(false);
   const [portValue, setPortValue] = useState('3000');
   const [copied, setCopied] = useState(false);
+  const [weatherLocation, setWeatherLocation] = useState('');
+  const [editingLocation, setEditingLocation] = useState(false);
 
   useEffect(() => {
     loadMcpConfig();
+    loadWeatherLocation();
   }, []);
 
   const loadMcpConfig = async () => {
@@ -39,6 +42,35 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Failed to load MCP config:', error);
+    }
+  };
+
+  const loadWeatherLocation = async () => {
+    try {
+      const response = await window.api.settings.get();
+      if (response.ok && response.data) {
+        setWeatherLocation(response.data.weatherLocation || '上海·徐汇');
+      }
+    } catch (error) {
+      console.error('Failed to load weather location:', error);
+      setWeatherLocation('上海·徐汇');
+    }
+  };
+
+  const handleSaveWeatherLocation = async () => {
+    if (!weatherLocation.trim()) return;
+    try {
+      const response = await window.api.settings.update({ weatherLocation: weatherLocation.trim() });
+      if (response.ok) {
+        setEditingLocation(false);
+        await window.api.notification.show({
+          type: 'success',
+          title: 'Location Updated',
+          message: `Weather location set to ${weatherLocation.trim()}`
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save weather location:', error);
     }
   };
 
@@ -212,6 +244,8 @@ export default function SettingsPage() {
         {activeTab === 'appearance' && (
           <div style={{ padding: '2rem', flex: 1, overflow: 'auto' }}>
             <h2 style={{ marginBottom: '2rem', color: 'var(--text-primary)', marginTop: 0 }}>Appearance</h2>
+            
+            {/* Theme Setting */}
             <div style={{
               background: 'var(--card-bg)',
               border: '1px solid var(--card-border)',
@@ -219,7 +253,8 @@ export default function SettingsPage() {
               padding: '1.5rem',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              marginBottom: '1rem'
             }}>
               <div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Theme</div>
@@ -237,6 +272,108 @@ export default function SettingsPage() {
                   transition: 'left 0.3s'
                 }}>{theme === 'dark' ? '🌙' : '☀️'}</div>
               </div>
+            </div>
+
+            {/* Weather Location Setting */}
+            <div style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              borderRadius: '12px',
+              padding: '1.5rem'
+            }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Weather Location</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>Set your location for weather information</div>
+              </div>
+              
+              {!editingLocation ? (
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{
+                    flex: 1,
+                    background: 'var(--bg)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: '8px',
+                    padding: '0.75rem 1rem',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span>📍</span>
+                    <span>{weatherLocation || '上海·徐汇'}</span>
+                  </div>
+                  <button
+                    onClick={() => setEditingLocation(true)}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '8px',
+                      border: '1px solid #03DAC6',
+                      background: 'rgba(3, 218, 198, 0.1)',
+                      color: '#03DAC6',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <input
+                    type="text"
+                    value={weatherLocation}
+                    onChange={(e) => setWeatherLocation(e.target.value)}
+                    placeholder="e.g., 上海·徐汇, New York, Tokyo"
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--card-border)',
+                      background: 'var(--bg)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  <button
+                    onClick={handleSaveWeatherLocation}
+                    disabled={!weatherLocation.trim()}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '8px',
+                      border: '1px solid #10B981',
+                      background: weatherLocation.trim() ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                      color: '#10B981',
+                      cursor: weatherLocation.trim() ? 'pointer' : 'not-allowed',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      transition: 'all 0.2s ease',
+                      opacity: weatherLocation.trim() ? 1 : 0.5
+                    }}
+                  >
+                    ✓ Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingLocation(false);
+                      loadWeatherLocation();
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--card-border)',
+                      background: 'transparent',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

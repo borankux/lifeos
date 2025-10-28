@@ -31,7 +31,6 @@
       "dist/**/*",
       "build/**/*",
       "notification.html",
-      "LOGO.svg",
       "package.json"
     ],
     "directories": {

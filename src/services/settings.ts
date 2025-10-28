@@ -5,6 +5,7 @@ export interface Settings {
   activeProjectId?: number;
   theme?: 'light' | 'dark';
   hideOldCompletedTasks?: boolean;
+  weatherLocation?: string;
 }
 
 const SETTINGS_FILENAME = 'settings.json';

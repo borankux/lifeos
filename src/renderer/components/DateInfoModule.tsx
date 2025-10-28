@@ -63,6 +63,22 @@ export function DateInfoModule() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState('上海·徐汇');
+
+  // Load weather location from settings
+  useEffect(() => {
+    const loadLocation = async () => {
+      try {
+        const response = await window.api.settings.get();
+        if (response.ok && response.data?.weatherLocation) {
+          setLocation(response.data.weatherLocation);
+        }
+      } catch (error) {
+        console.error('Failed to load weather location:', error);
+      }
+    };
+    loadLocation();
+  }, []);
 
   // Update time every second
   useEffect(() => {
@@ -74,7 +90,7 @@ export function DateInfoModule() {
 
   // Fetch weather data (simulated - you can integrate real API)
   useEffect(() => {
-    // Simulated weather data for Xuhui, Shanghai
+    // Simulated weather data based on location setting
     // In production, integrate with weather API like OpenWeatherMap or QWeather
     const fetchWeather = async () => {
       try {
@@ -117,7 +133,7 @@ export function DateInfoModule() {
     // Refresh weather every 30 minutes
     const weatherInterval = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => clearInterval(weatherInterval);
-  }, []);
+  }, [location]);
 
   // Calculate various date information
   const gregorianDate = currentTime.toLocaleDateString('zh-CN', {
@@ -279,7 +295,7 @@ export function DateInfoModule() {
             color: 'var(--text-tertiary)',
             fontWeight: 500
           }}>
-            📍 上海·徐汇
+            📍 {location}
           </div>
           {loading ? (
             <div style={{ 
